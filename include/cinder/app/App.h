@@ -350,7 +350,7 @@ class App {
 	virtual void	launch( const char *title, int argc, char * const argv[] ) = 0;
 	//! \endcond
 
-  private:
+  protected:
   
 #if defined( CINDER_MSW )
 	friend class AppImplMsw;

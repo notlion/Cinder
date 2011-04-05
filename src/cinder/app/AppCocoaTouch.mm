@@ -26,84 +26,15 @@
 
 namespace cinder { namespace app {
 
+
 AppCocoaTouch*				AppCocoaTouch::sInstance = 0;
 
 // This struct serves as a compile firewall for maintaining AppCocoaTouch state information
 struct AppCocoaTouchState {
 	CinderViewCocoaTouch		*mCinderView;
-	UIWindow					*mWindow;
 	CFAbsoluteTime				mStartTime;
 };
-
-void setupCocoaTouchWindow( AppCocoaTouch *app )
-{
-	app->privatePrepareSettings__();
-	app->mState->mWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-	app->mState->mCinderView = [[CinderViewCocoaTouch alloc] initWithFrame:[[UIScreen mainScreen] bounds] app:app renderer:app->getRenderer()];
-	[app->mState->mWindow addSubview:app->mState->mCinderView];
-	[app->mState->mCinderView release];
-	[app->mState->mWindow makeKeyAndVisible];
-
-	[app->mState->mCinderView layoutIfNeeded];
-	app->privateSetup__();
-	[app->mState->mCinderView setAppSetupCalled:YES];
-	app->privateResize__( ci::app::ResizeEvent( ci::Vec2i( [app->mState->mCinderView bounds].size.width, [app->mState->mCinderView bounds].size.height ) ) );
-	
-	[app->mState->mCinderView startAnimation];
-}
-
-} } // namespace cinder::app
-
-@interface CinderAppDelegateIPhone : NSObject <UIApplicationDelegate, UIAccelerometerDelegate> {
-	cinder::app::AppCocoaTouch	*app;
-//    UIWindow				*window;
-//    CinderViewCocoaTouch	*cinderView;
-}
-@end
-
-@implementation CinderAppDelegateIPhone
-
-
-- (void) applicationDidFinishLaunching:(UIApplication *)application
-{
-	app = cinder::app::AppCocoaTouch::get();
-	setupCocoaTouchWindow( app );
-}
-
-- (void) applicationWillResignActive:(UIApplication *)application
-{
-//	[cinderView stopAnimation];
-}
-
-- (void) applicationDidBecomeActive:(UIApplication *)application
-{
-//	[cinderView startAnimation];
-}
-
-- (void)applicationWillTerminate:(UIApplication *)application
-{
-//	[cinderView stopAnimation];
-	app->privateShutdown__();
-}
-
-- (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)thisAcceleration {
-	// Massage the UIAcceleration class into a Vec3f
-	ci::Vec3f direction( thisAcceleration.x, thisAcceleration.y, thisAcceleration.z );
-	app->privateAccelerated__( direction );
-}
-
-- (void) dealloc
-{
-//	[window release];
-//	[cinderView release];
-	
-	[super dealloc];
-}
-
-@end
-
-
-namespace cinder { namespace app {
+    
 
 AppCocoaTouch::AppCocoaTouch()
 	: App()
@@ -111,6 +42,27 @@ AppCocoaTouch::AppCocoaTouch()
 	mState = std::shared_ptr<AppCocoaTouchState>( new AppCocoaTouchState() );
 	mState->mStartTime = ::CFAbsoluteTimeGetCurrent();
 	mLastAccel = mLastRawAccel = Vec3f::zero();
+}
+
+void AppCocoaTouch::setRenderer( Renderer *renderer )
+{
+    mRenderer = std::shared_ptr<Renderer>( renderer );
+}
+
+void AppCocoaTouch::addToViewAndStart( UIView *view, CGRect bounds )
+{
+    privatePrepareSettings__();
+    mState->mCinderView = [[CinderViewCocoaTouch alloc] initWithFrame:bounds app:this renderer:getRenderer()];
+    
+    [view addSubview:mState->mCinderView];
+    [mState->mCinderView release];
+    [mState->mCinderView layoutIfNeeded];
+    
+    privateSetup__();
+    [mState->mCinderView setAppSetupCalled:YES];
+    privateResize__( ci::app::ResizeEvent( ci::Vec2i( [mState->mCinderView bounds].size.width, [mState->mCinderView bounds].size.height ) ) );
+    
+    [mState->mCinderView startAnimation];
 }
 
 void AppCocoaTouch::launch( const char *title, int argc, char * const argv[] )
@@ -137,22 +89,22 @@ int	AppCocoaTouch::getWindowHeight() const
 }
 
 //! Enables the accelerometer
-void AppCocoaTouch::enableAccelerometer( float updateFrequency, float filterFactor )
-{
-	mAccelFilterFactor = filterFactor;
-	
-	if( updateFrequency <= 0 )
-		updateFrequency = 30.0f;
-	
-	[[UIAccelerometer sharedAccelerometer] setUpdateInterval:1.0 / updateFrequency];
-	CinderAppDelegateIPhone *appDel = (CinderAppDelegateIPhone *)[[UIApplication sharedApplication] delegate];
-	[[UIAccelerometer sharedAccelerometer] setDelegate:appDel];
-}
-
-void AppCocoaTouch::disableAccelerometer() {
-	
-	[[UIAccelerometer sharedAccelerometer] setDelegate:nil];
-}
+//void AppCocoaTouch::enableAccelerometer( float updateFrequency, float filterFactor )
+//{
+//	mAccelFilterFactor = filterFactor;
+//	
+//	if( updateFrequency <= 0 )
+//		updateFrequency = 30.0f;
+//	
+//	[[UIAccelerometer sharedAccelerometer] setUpdateInterval:1.0 / updateFrequency];
+//	CinderAppDelegateIPhone *appDel = (CinderAppDelegateIPhone *)[[UIApplication sharedApplication] delegate];
+//	[[UIAccelerometer sharedAccelerometer] setDelegate:appDel];
+//}
+//
+//void AppCocoaTouch::disableAccelerometer() {
+//	
+//	[[UIAccelerometer sharedAccelerometer] setDelegate:nil];
+//}
 
 //! Returns the maximum frame-rate the App will attempt to maintain.
 float AppCocoaTouch::getFrameRate() const
@@ -189,7 +141,7 @@ std::string AppCocoaTouch::getAppPath()
 
 void AppCocoaTouch::quit()
 {
-return;
+    return;
 }
 
 void AppCocoaTouch::privatePrepareSettings__()

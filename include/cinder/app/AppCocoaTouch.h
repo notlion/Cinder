@@ -157,9 +157,10 @@ class AppCocoaTouch : public App {
 	void		privateAccelerated__( const Vec3f &direction );
 	//! \endcond
 
+    void		setRenderer( Renderer *renderer );
+    void		addToViewAndStart( UIView *view, CGRect bounds );
+    
   private:
-	friend void		setupCocoaTouchWindow( AppCocoaTouch *app );
-	
 	// The state is contained in a struct in order to avoid this .h needing to be compiled as Objective-C++
 	std::shared_ptr<AppCocoaTouchState>		mState;
 	
@@ -176,13 +177,3 @@ class AppCocoaTouch : public App {
 };
 
 } } // namespace cinder::app
-
-#define CINDER_APP_COCOA_TOUCH( APP, RENDERER )								\
-int main( int argc, char *argv[] ) {										\
-	cinder::app::AppCocoaTouch::prepareLaunch();							\
-	cinder::app::AppCocoaTouch *app = new APP;								\
-	cinder::app::Renderer *ren = new RENDERER;								\
-	cinder::app::AppCocoaTouch::executeLaunch( app, ren, #APP, argc, argv );\
-	cinder::app::AppCocoaTouch::cleanupLaunch();							\
-    return 0;																\
-}
