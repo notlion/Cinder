@@ -65,6 +65,11 @@ void AppCocoaTouch::addToViewAndStart( UIView *view, CGRect bounds )
     [mState->mCinderView startAnimation];
 }
 
+CinderViewCocoaTouch* AppCocoaTouch::getView()
+{
+    return mState->mCinderView;
+}
+
 void AppCocoaTouch::launch( const char *title, int argc, char * const argv[] )
 {
 	::UIApplicationMain( argc, const_cast<char**>( argv ), nil, @"CinderAppDelegateIPhone" );
