@@ -39,6 +39,7 @@ struct AppCocoaTouchState {
 AppCocoaTouch::AppCocoaTouch()
 	: App()
 {
+    App::sInstance = this;
 	mState = std::shared_ptr<AppCocoaTouchState>( new AppCocoaTouchState() );
 	mState->mStartTime = ::CFAbsoluteTimeGetCurrent();
 	mLastAccel = mLastRawAccel = Vec3f::zero();
@@ -63,11 +64,6 @@ void AppCocoaTouch::addToViewAndStart( UIView *view, CGRect bounds )
     privateResize__( ci::app::ResizeEvent( ci::Vec2i( [mState->mCinderView bounds].size.width, [mState->mCinderView bounds].size.height ) ) );
     
     [mState->mCinderView startAnimation];
-}
-
-CinderViewCocoaTouch* AppCocoaTouch::getView()
-{
-    return mState->mCinderView;
 }
 
 void AppCocoaTouch::launch( const char *title, int argc, char * const argv[] )

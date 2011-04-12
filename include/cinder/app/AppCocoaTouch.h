@@ -27,8 +27,6 @@
 #include "cinder/app/TouchEvent.h"
 #include "cinder/app/AccelEvent.h"
 
-@class CinderViewCocoaTouch;
-
 
 namespace cinder { namespace app {
 
@@ -161,8 +159,6 @@ class AppCocoaTouch : public App {
 
     void		setRenderer( Renderer *renderer );
     void		addToViewAndStart( UIView *view, CGRect bounds );
-    
-    CinderViewCocoaTouch* getView();
     
   private:
 	// The state is contained in a struct in order to avoid this .h needing to be compiled as Objective-C++
