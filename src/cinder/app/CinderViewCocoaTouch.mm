@@ -45,7 +45,7 @@ static Boolean sIsEaglLayer;
 {
 	// This needs to get setup immediately as +layerClass will be called when the view is initialized
 	sIsEaglLayer = renderer->isEaglLayer();
-	
+
 	if( (self = [super initWithFrame:frame]) ) {
 		animating = FALSE;
 		appSetupCalled = FALSE;
@@ -54,26 +54,29 @@ static Boolean sIsEaglLayer;
 		mApp = app;
 		mRenderer = renderer;
 		if( [[UIScreen mainScreen] respondsToSelector:@selector(scale:)] &&
-				[self respondsToSelector:@selector(setContentScaleFactor:)] )
+			[self respondsToSelector:@selector(setContentScaleFactor:)] )
 			[self setContentScaleFactor:[[UIScreen mainScreen] scale]];
 
 		renderer->setup( mApp, ci::cocoa::CgRectToArea( frame ), self );
-		
+
 		self.multipleTouchEnabled = mApp->getSettings().isMultiTouchEnabled();
+
+		self.autoresizesSubviews = YES;
+		self.autoresizingMask = UIViewAutoresizingFlexibleWidth || UIViewAutoresizingFlexibleHeight;
 	}
-	
+
     return self;
 }
 
 - (void) layoutSubviews
 {
 	[super layoutSubviews];
-	
+
 	CGRect bounds = [self bounds];
 	mRenderer->setFrameSize( bounds.size.width, bounds.size.height );
 	if( appSetupCalled ) {
 		mApp->privateResize__( ci::app::ResizeEvent( ci::Vec2i( bounds.size.width, bounds.size.height ) ) );
-		[self drawView:nil];	
+		[self drawView:nil];
 	}
 }
 
@@ -103,7 +106,7 @@ static Boolean sIsEaglLayer;
 		displayLink = [NSClassFromString(@"CADisplayLink") displayLinkWithTarget:self selector:@selector(drawView:)];
 		[displayLink setFrameInterval:animationFrameInterval];
 		[displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-		
+
 		animating = TRUE;
 	}
 }
@@ -113,7 +116,7 @@ static Boolean sIsEaglLayer;
 	if( animating ) {
 		[displayLink invalidate];
 		displayLink = nil;
-		
+
 		animating = FALSE;
 	}
 }
@@ -127,7 +130,7 @@ static Boolean sIsEaglLayer;
 {
 	if ( frameInterval >= 1 ) {
 		animationFrameInterval = frameInterval;
-		
+
 		if( animating ) {
 			[self stopAnimation];
 			[self startAnimation];
@@ -154,9 +157,9 @@ static Boolean sIsEaglLayer;
 			}
 		}
 	}
-	
+
 	mTouchIdMap.insert( std::make_pair( touch, candidateId ) );
-	
+
 	return candidateId;
 }
 
@@ -198,7 +201,7 @@ static Boolean sIsEaglLayer;
 - (void) touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event
 {
 	static float contentScale = [self respondsToSelector:NSSelectorFromString(@"contentScaleFactor")] ? self.contentScaleFactor : 1;
-	
+
 	if( mApp->getSettings().isMultiTouchEnabled() ) {
 		std::vector<ci::app::TouchEvent::Touch> touchList;
 		for( UITouch *touch in touches ) {
@@ -212,7 +215,7 @@ static Boolean sIsEaglLayer;
 	}
 	else {
 		for( UITouch *touch in touches ) {
-			CGPoint pt = [touch locationInView:self];		
+			CGPoint pt = [touch locationInView:self];
 			int mods = 0;
 			mods |= cinder::app::MouseEvent::LEFT_DOWN;
 			mApp->privateMouseDown__( cinder::app::MouseEvent( cinder::app::MouseEvent::LEFT_DOWN, pt.x * contentScale, pt.y * contentScale, mods, 0.0f, 0 ) );
@@ -228,7 +231,7 @@ static Boolean sIsEaglLayer;
 		std::vector<ci::app::TouchEvent::Touch> touchList;
 		for( UITouch *touch in touches ) {
 			CGPoint pt = [touch locationInView:self];
-			CGPoint prevPt = [touch previousLocationInView:self];			
+			CGPoint prevPt = [touch previousLocationInView:self];
 			touchList.push_back( ci::app::TouchEvent::Touch( ci::Vec2f( pt.x, pt.y ) * contentScale, ci::Vec2f( prevPt.x, prevPt.y ) * contentScale, [self findTouchInMap:touch], [touch timestamp], touch ) );
 		}
 		[self updateActiveTouches];
@@ -237,7 +240,7 @@ static Boolean sIsEaglLayer;
 	}
 	else {
 		for( UITouch *touch in touches ) {
-			CGPoint pt = [touch locationInView:self];		
+			CGPoint pt = [touch locationInView:self];
 			int mods = 0;
 			mods |= cinder::app::MouseEvent::LEFT_DOWN;
 			mApp->privateMouseDrag__( cinder::app::MouseEvent( cinder::app::MouseEvent::LEFT_DOWN, pt.x * contentScale, pt.y * contentScale, mods, 0.0f, 0 ) );
@@ -263,7 +266,7 @@ static Boolean sIsEaglLayer;
 	}
 	else {
 		for( UITouch *touch in touches ) {
-			CGPoint pt = [touch locationInView:self];		
+			CGPoint pt = [touch locationInView:self];
 			int mods = 0;
 			mods |= cinder::app::MouseEvent::LEFT_DOWN;
 			mApp->privateMouseUp__( cinder::app::MouseEvent( cinder::app::MouseEvent::LEFT_DOWN, pt.x * contentScale, pt.y * contentScale, mods, 0.0f, 0 ) );
