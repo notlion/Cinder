@@ -160,6 +160,8 @@ class AppCocoaTouch : public App {
     void		setRenderer( Renderer *renderer );
     void		addToViewAndStart( UIView *view, CGRect bounds );
     
+    void		setAccelFilterFactor( float factor ){ mAccelFilterFactor = factor; }
+    
   private:
 	// The state is contained in a struct in order to avoid this .h needing to be compiled as Objective-C++
 	std::shared_ptr<AppCocoaTouchState>		mState;
