@@ -572,12 +572,7 @@ void VboMesh::unbindBuffers()
 
 void VboMesh::bufferIndices( const std::vector<uint32_t> &indices )
 {
-	bufferIndices( &(indices[0]), indices.size() );
-}
-    
-void VboMesh::bufferIndices( const uint32_t *indices, size_t count )
-{
-    mObj->mBuffers[INDEX_BUFFER].bufferData( sizeof(uint32_t) * count, indices, (mObj->mLayout.hasStaticIndices()) ? GL_STATIC_DRAW : GL_STREAM_DRAW );
+	mObj->mBuffers[INDEX_BUFFER].bufferData( sizeof(uint32_t) * indices.size(), &(indices[0]), (mObj->mLayout.hasStaticIndices()) ? GL_STATIC_DRAW : GL_STREAM_DRAW );
 }
 
 void VboMesh::bufferPositions( const std::vector<Vec3f> &positions )
@@ -606,20 +601,15 @@ void VboMesh::bufferPositions( const Vec3f *positions, size_t count )
 
 void VboMesh::bufferNormals( const std::vector<Vec3f> &normals )
 {
-    bufferNormals( &(normals[0]), normals.size() );
-}
-
-void VboMesh::bufferNormals( const Vec3f *normals, size_t count )
-{
 	if( mObj->mLayout.hasDynamicNormals() ) {
 		if( mObj->mDynamicStride == 0 )
-			getDynamicVbo().bufferSubData( mObj->mNormalOffset, sizeof(Vec3f) * count, normals );
+			getDynamicVbo().bufferSubData( mObj->mNormalOffset, sizeof(Vec3f) * normals.size(), &(normals[0]) );
 		else
 			throw;
 	}
 	else if( mObj->mLayout.hasStaticNormals() ) {
 		if( mObj->mStaticStride == 0 ) { // planar data
-			getStaticVbo().bufferSubData( mObj->mNormalOffset, sizeof(Vec3f) * count, normals );
+			getStaticVbo().bufferSubData( mObj->mNormalOffset, sizeof(Vec3f) * normals.size(), &(normals[0]) );
 		}
 		else
 			throw;
@@ -630,26 +620,21 @@ void VboMesh::bufferNormals( const Vec3f *normals, size_t count )
 
 void VboMesh::bufferTexCoords2d( size_t unit, const std::vector<Vec2f> &texCoords )
 {
-	bufferTexCoords2d( unit, &(texCoords[0]), texCoords.size() );
-}
-
-void VboMesh::bufferTexCoords2d( size_t unit, const Vec2f *texCoords, size_t count )
-{
-    if( mObj->mLayout.hasDynamicTexCoords2d() ) {
-        if( mObj->mDynamicStride == 0 )
-            getDynamicVbo().bufferSubData( mObj->mTexCoordOffset[unit], sizeof(Vec2f) * count, texCoords );
-        else
-            throw;
-    }
-    else if( mObj->mLayout.hasStaticTexCoords2d() ) {
-        if( mObj->mStaticStride == 0 ) { // planar data
-            getStaticVbo().bufferSubData( mObj->mTexCoordOffset[unit], sizeof(Vec2f) * count, texCoords );
-        }
-        else
-            throw;
-    }
-    else
-        throw;
+	if( mObj->mLayout.hasDynamicTexCoords2d() ) {
+		if( mObj->mDynamicStride == 0 )
+			getDynamicVbo().bufferSubData( mObj->mTexCoordOffset[unit], sizeof(Vec2f) * texCoords.size(), &(texCoords[0]) );
+		else
+			throw;
+	}
+	else if( mObj->mLayout.hasStaticTexCoords2d() ) {
+		if( mObj->mStaticStride == 0 ) { // planar data
+			getStaticVbo().bufferSubData( mObj->mTexCoordOffset[unit], sizeof(Vec2f) * texCoords.size(), &(texCoords[0]) );
+		}
+		else
+			throw;
+	}
+	else
+		throw;
 }
 	
 void VboMesh::bufferColorsRGB( const std::vector<Color> &colors )

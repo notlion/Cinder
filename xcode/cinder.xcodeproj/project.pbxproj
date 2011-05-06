@@ -524,6 +524,31 @@
 		43ED153D1221DF6C003AEB0B /* UrlImplCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 43ED0FDD12209488003AEB0B /* UrlImplCocoa.mm */; };
 		5391FD680E957646002A13D5 /* KeyEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 5391FD670E957646002A13D5 /* KeyEvent.h */; };
 		5391FE660E95CB01002A13D5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D6A5FE840307C02AAC07 /* AppKit.framework */; };
+		9435D586137364A100F9D9A1 /* Triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9435D583137364A100F9D9A1 /* Triangulate.cpp */; };
+		9435D58D137364B200F9D9A1 /* Triangulate.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D58A137364B200F9D9A1 /* Triangulate.h */; };
+		9435D5A01373659A00F9D9A1 /* bucketalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5911373659A00F9D9A1 /* bucketalloc.c */; };
+		9435D5A11373659A00F9D9A1 /* bucketalloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D5921373659A00F9D9A1 /* bucketalloc.h */; };
+		9435D5A21373659A00F9D9A1 /* dict.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5931373659A00F9D9A1 /* dict.c */; };
+		9435D5A31373659A00F9D9A1 /* dict.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D5941373659A00F9D9A1 /* dict.h */; };
+		9435D5A41373659A00F9D9A1 /* geom.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5951373659A00F9D9A1 /* geom.c */; };
+		9435D5A51373659A00F9D9A1 /* geom.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D5961373659A00F9D9A1 /* geom.h */; };
+		9435D5A61373659A00F9D9A1 /* mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5971373659A00F9D9A1 /* mesh.c */; };
+		9435D5A71373659A00F9D9A1 /* mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D5981373659A00F9D9A1 /* mesh.h */; };
+		9435D5A81373659A00F9D9A1 /* priorityq.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5991373659A00F9D9A1 /* priorityq.c */; };
+		9435D5A91373659A00F9D9A1 /* priorityq.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D59A1373659A00F9D9A1 /* priorityq.h */; };
+		9435D5AA1373659A00F9D9A1 /* sweep.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D59B1373659A00F9D9A1 /* sweep.c */; };
+		9435D5AB1373659A00F9D9A1 /* sweep.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D59C1373659A00F9D9A1 /* sweep.h */; };
+		9435D5AC1373659A00F9D9A1 /* tess.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D59D1373659A00F9D9A1 /* tess.c */; };
+		9435D5AD1373659A00F9D9A1 /* tess.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D59E1373659A00F9D9A1 /* tess.h */; };
+		9435D5AE1373659A00F9D9A1 /* tesselator.h in Headers */ = {isa = PBXBuildFile; fileRef = 9435D59F1373659A00F9D9A1 /* tesselator.h */; };
+		9435D5AF1373685000F9D9A1 /* Triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9435D583137364A100F9D9A1 /* Triangulate.cpp */; };
+		9435D5B01373688100F9D9A1 /* bucketalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5911373659A00F9D9A1 /* bucketalloc.c */; };
+		9435D5B11373688100F9D9A1 /* dict.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5931373659A00F9D9A1 /* dict.c */; };
+		9435D5B21373688100F9D9A1 /* geom.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5951373659A00F9D9A1 /* geom.c */; };
+		9435D5B31373688100F9D9A1 /* mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5971373659A00F9D9A1 /* mesh.c */; };
+		9435D5B41373688100F9D9A1 /* priorityq.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D5991373659A00F9D9A1 /* priorityq.c */; };
+		9435D5B51373688100F9D9A1 /* sweep.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D59B1373659A00F9D9A1 /* sweep.c */; };
+		9435D5B61373688100F9D9A1 /* tess.c in Sources */ = {isa = PBXBuildFile; fileRef = 9435D59D1373659A00F9D9A1 /* tess.c */; };
 		C70E19FF106AA38700E63577 /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = C70E19FE106AA38700E63577 /* Buffer.h */; };
 		C70E1A03106AA39D00E63577 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C70E1A01106AA39D00E63577 /* Buffer.cpp */; };
 		C727BFE5121B3AE600192073 /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007438400EA7924F005DD3E6 /* Capture.cpp */; };
@@ -806,6 +831,23 @@
 		43ED0FDD12209488003AEB0B /* UrlImplCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = UrlImplCocoa.mm; sourceTree = "<group>"; };
 		43ED0FE11220949A003AEB0B /* UrlImplCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UrlImplCocoa.h; sourceTree = "<group>"; };
 		5391FD670E957646002A13D5 /* KeyEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyEvent.h; path = app/KeyEvent.h; sourceTree = "<group>"; };
+		9435D583137364A100F9D9A1 /* Triangulate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Triangulate.cpp; sourceTree = "<group>"; };
+		9435D58A137364B200F9D9A1 /* Triangulate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Triangulate.h; sourceTree = "<group>"; };
+		9435D5911373659A00F9D9A1 /* bucketalloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bucketalloc.c; sourceTree = "<group>"; };
+		9435D5921373659A00F9D9A1 /* bucketalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bucketalloc.h; sourceTree = "<group>"; };
+		9435D5931373659A00F9D9A1 /* dict.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dict.c; sourceTree = "<group>"; };
+		9435D5941373659A00F9D9A1 /* dict.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dict.h; sourceTree = "<group>"; };
+		9435D5951373659A00F9D9A1 /* geom.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = geom.c; sourceTree = "<group>"; };
+		9435D5961373659A00F9D9A1 /* geom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geom.h; sourceTree = "<group>"; };
+		9435D5971373659A00F9D9A1 /* mesh.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mesh.c; sourceTree = "<group>"; };
+		9435D5981373659A00F9D9A1 /* mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mesh.h; sourceTree = "<group>"; };
+		9435D5991373659A00F9D9A1 /* priorityq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = priorityq.c; sourceTree = "<group>"; };
+		9435D59A1373659A00F9D9A1 /* priorityq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = priorityq.h; sourceTree = "<group>"; };
+		9435D59B1373659A00F9D9A1 /* sweep.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sweep.c; sourceTree = "<group>"; };
+		9435D59C1373659A00F9D9A1 /* sweep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sweep.h; sourceTree = "<group>"; };
+		9435D59D1373659A00F9D9A1 /* tess.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tess.c; sourceTree = "<group>"; };
+		9435D59E1373659A00F9D9A1 /* tess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tess.h; sourceTree = "<group>"; };
+		9435D59F1373659A00F9D9A1 /* tesselator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tesselator.h; sourceTree = "<group>"; };
 		C70E19FE106AA38700E63577 /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		C70E1A01106AA39D00E63577 /* Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Buffer.cpp; sourceTree = "<group>"; };
 		C7792FAE119A185000521786 /* CocoaCaConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CocoaCaConverter.cpp; sourceTree = "<group>"; };
@@ -1045,6 +1087,7 @@
 		00BAE6C50E7EDD7F0018A608 /* cinder */ = {
 			isa = PBXGroup;
 			children = (
+				9435D58A137364B200F9D9A1 /* Triangulate.h */,
 				003ADB5F1038844300ACF6F2 /* params */,
 				00C07D8D0FFF1E43004801EA /* ip */,
 				C7BA405B0FA8BEFD00AADC07 /* audio */,
@@ -1117,6 +1160,7 @@
 		00BAE6CC0E7EDD8C0018A608 /* cinder */ = {
 			isa = PBXGroup;
 			children = (
+				9435D583137364A100F9D9A1 /* Triangulate.cpp */,
 				003ADB5E1038843100ACF6F2 /* params */,
 				00C07D8F0FFF1E99004801EA /* ip */,
 				C7BA40600FA8BF0F00AADC07 /* audio */,
@@ -1350,10 +1394,34 @@
 		32C88DFF0371C24200C91783 /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				9435D5901373659A00F9D9A1 /* libtess2 */,
 				007CE1F1127BB11200799071 /* rapidxml */,
 				32DBCF5E0370ADEE00C91783 /* cinder_Prefix.pch */,
 			);
 			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		9435D5901373659A00F9D9A1 /* libtess2 */ = {
+			isa = PBXGroup;
+			children = (
+				9435D5911373659A00F9D9A1 /* bucketalloc.c */,
+				9435D5921373659A00F9D9A1 /* bucketalloc.h */,
+				9435D5931373659A00F9D9A1 /* dict.c */,
+				9435D5941373659A00F9D9A1 /* dict.h */,
+				9435D5951373659A00F9D9A1 /* geom.c */,
+				9435D5961373659A00F9D9A1 /* geom.h */,
+				9435D5971373659A00F9D9A1 /* mesh.c */,
+				9435D5981373659A00F9D9A1 /* mesh.h */,
+				9435D5991373659A00F9D9A1 /* priorityq.c */,
+				9435D59A1373659A00F9D9A1 /* priorityq.h */,
+				9435D59B1373659A00F9D9A1 /* sweep.c */,
+				9435D59C1373659A00F9D9A1 /* sweep.h */,
+				9435D59D1373659A00F9D9A1 /* tess.c */,
+				9435D59E1373659A00F9D9A1 /* tess.h */,
+				9435D59F1373659A00F9D9A1 /* tesselator.h */,
+			);
+			name = libtess2;
+			path = ../src/libtess2;
 			sourceTree = "<group>";
 		};
 		C7BA405B0FA8BEFD00AADC07 /* audio */ = {
@@ -1736,6 +1804,15 @@
 				003FAAA31290CCB1002D6860 /* Clipboard.h in Headers */,
 				003FABA71290ED38002D6860 /* AppNative.h in Headers */,
 				003133A4129EB85D009DC098 /* Blend.h in Headers */,
+				9435D58D137364B200F9D9A1 /* Triangulate.h in Headers */,
+				9435D5A11373659A00F9D9A1 /* bucketalloc.h in Headers */,
+				9435D5A31373659A00F9D9A1 /* dict.h in Headers */,
+				9435D5A51373659A00F9D9A1 /* geom.h in Headers */,
+				9435D5A71373659A00F9D9A1 /* mesh.h in Headers */,
+				9435D5A91373659A00F9D9A1 /* priorityq.h in Headers */,
+				9435D5AB1373659A00F9D9A1 /* sweep.h in Headers */,
+				9435D5AD1373659A00F9D9A1 /* tess.h in Headers */,
+				9435D5AE1373659A00F9D9A1 /* tesselator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1825,6 +1902,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9435D5B01373688100F9D9A1 /* bucketalloc.c in Sources */,
+				9435D5B11373688100F9D9A1 /* dict.c in Sources */,
+				9435D5B21373688100F9D9A1 /* geom.c in Sources */,
+				9435D5B31373688100F9D9A1 /* mesh.c in Sources */,
+				9435D5B41373688100F9D9A1 /* priorityq.c in Sources */,
+				9435D5B51373688100F9D9A1 /* sweep.c in Sources */,
+				9435D5B61373688100F9D9A1 /* tess.c in Sources */,
+				9435D5AF1373685000F9D9A1 /* Triangulate.cpp in Sources */,
 				007050491114F93F003FCAE4 /* Camera.cpp in Sources */,
 				0070504A1114F93F003FCAE4 /* Matrix.cpp in Sources */,
 				0070504D1114F93F003FCAE4 /* Surface.cpp in Sources */,
@@ -2068,6 +2153,14 @@
 				C7FB1B9A124BE2DF0045AFD2 /* PcmBuffer.cpp in Sources */,
 				434708D91267EE4300AA7349 /* Blend.cpp in Sources */,
 				003FAA9F1290CC90002D6860 /* Clipboard.cpp in Sources */,
+				9435D586137364A100F9D9A1 /* Triangulate.cpp in Sources */,
+				9435D5A01373659A00F9D9A1 /* bucketalloc.c in Sources */,
+				9435D5A21373659A00F9D9A1 /* dict.c in Sources */,
+				9435D5A41373659A00F9D9A1 /* geom.c in Sources */,
+				9435D5A61373659A00F9D9A1 /* mesh.c in Sources */,
+				9435D5A81373659A00F9D9A1 /* priorityq.c in Sources */,
+				9435D5AA1373659A00F9D9A1 /* sweep.c in Sources */,
+				9435D5AC1373659A00F9D9A1 /* tess.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
