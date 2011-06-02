@@ -49,6 +49,7 @@ static Boolean sIsEaglLayer;
 	if( (self = [super initWithFrame:frame]) ) {
 		animating = FALSE;
 		appSetupCalled = FALSE;
+        deferredFrameWaiting = FALSE;
 		animationFrameInterval = 1;
 		displayLink = nil;
 		mApp = app;
@@ -76,7 +77,7 @@ static Boolean sIsEaglLayer;
 	mRenderer->setFrameSize( bounds.size.width, bounds.size.height );
 	if( appSetupCalled ) {
 		mApp->privateResize__( ci::app::ResizeEvent( ci::Vec2i( bounds.size.width, bounds.size.height ) ) );
-		[self drawView:nil];
+		[self drawView: nil];
 	}
 }
 
@@ -86,6 +87,11 @@ static Boolean sIsEaglLayer;
 	mApp->privateUpdate__();
 	mApp->privateDraw__();
 	mRenderer->finishDraw();
+    
+    if(self->deferredFrameWaiting){
+        self.frame = self->deferredFrame;
+        self->deferredFrameWaiting = FALSE;
+    }
 }
 
 - (void)drawView:(id)sender
@@ -98,6 +104,11 @@ static Boolean sIsEaglLayer;
 	}
 	else
 		[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:self waitUntilDone:NO];
+    
+    if(self->deferredFrameWaiting){
+        self.frame = self->deferredFrame;
+        self->deferredFrameWaiting = FALSE;
+    }
 }
 
 - (void) startAnimation
@@ -137,6 +148,18 @@ static Boolean sIsEaglLayer;
 		}
 	}
 }
+
+- (void)setFrameDeferred:(CGRect)frame
+{
+    self->deferredFrame = frame;
+    self->deferredFrameWaiting = TRUE;
+}
+
+- (void)clearSetFrameDeferred
+{
+    self->deferredFrameWaiting = FALSE;
+}
+
 
 - (void)dealloc
 {
