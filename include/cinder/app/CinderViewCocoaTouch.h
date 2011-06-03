@@ -43,9 +43,6 @@
 	std::map<UITouch*,uint32_t>	mTouchIdMap;
 	ci::Vec3d					mAcceleration;
 	BOOL						appSetupCalled;
-    
-    BOOL   deferredFrameWaiting;
-    CGRect deferredFrame;
 }
 
 @property (readonly, nonatomic, getter=isAnimating) BOOL animating;
@@ -64,8 +61,5 @@
 - (uint32_t)findTouchInMap:(UITouch*)touch;
 - (void)updateActiveTouches;
 - (void)touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event;
-
-- (void)setFrameDeferred:(CGRect)frame;
-- (void)clearSetFrameDeferred;
 
 @end

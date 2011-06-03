@@ -49,7 +49,6 @@ static Boolean sIsEaglLayer;
 	if( (self = [super initWithFrame:frame]) ) {
 		animating = FALSE;
 		appSetupCalled = FALSE;
-        deferredFrameWaiting = FALSE;
 		animationFrameInterval = 1;
 		displayLink = nil;
 		mApp = app;
@@ -87,11 +86,6 @@ static Boolean sIsEaglLayer;
 	mApp->privateUpdate__();
 	mApp->privateDraw__();
 	mRenderer->finishDraw();
-    
-    if(self->deferredFrameWaiting){
-        self.frame = self->deferredFrame;
-        self->deferredFrameWaiting = FALSE;
-    }
 }
 
 - (void)drawView:(id)sender
@@ -104,11 +98,6 @@ static Boolean sIsEaglLayer;
 	}
 	else
 		[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:self waitUntilDone:NO];
-    
-    if(self->deferredFrameWaiting){
-        self.frame = self->deferredFrame;
-        self->deferredFrameWaiting = FALSE;
-    }
 }
 
 - (void) startAnimation
@@ -147,17 +136,6 @@ static Boolean sIsEaglLayer;
 			[self startAnimation];
 		}
 	}
-}
-
-- (void)setFrameDeferred:(CGRect)frame
-{
-    self->deferredFrame = frame;
-    self->deferredFrameWaiting = TRUE;
-}
-
-- (void)clearSetFrameDeferred
-{
-    self->deferredFrameWaiting = FALSE;
 }
 
 
