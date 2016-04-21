@@ -5543,6 +5543,7 @@
 				);
 				OBJROOT = build/;
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				SKIP_INSTALL = YES;
 				SYMROOT = ../lib;
 				USER_HEADER_SEARCH_PATHS = "../include ../include/json ../src/oggvorbis/vorbis ../src/r8brain";
 			};
@@ -5583,6 +5584,7 @@
 				);
 				OBJROOT = build/;
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				SKIP_INSTALL = YES;
 				SYMROOT = ../lib;
 				USER_HEADER_SEARCH_PATHS = "../include ../src/oggvorbis/vorbis ../src/r8brain";
 			};
