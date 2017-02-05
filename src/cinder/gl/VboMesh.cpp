@@ -561,8 +561,13 @@ void VboMesh::bufferAttrib( geom::Attrib attrib, size_t dataSizeBytes, const voi
 		layoutVbo->second->bufferSubData( attribInfo.getOffset(), dataSizeBytes, data );
 	}
 	else { // interleaved data
-#if ! defined( CINDER_GL_ANGLE ) || defined( CINDER_GL_ES_3 )
+#if defined( CINDER_GL_HAS_MAP_BUFFER ) || defined( CINDER_GL_HAS_MAP_BUFFER_RANGE )
+    #if ! defined( CINDER_EMSCRIPTEN )
 		uint8_t *ptr = reinterpret_cast<uint8_t*>( layoutVbo->second->mapWriteOnly() );
+    #else
+        // Emscripten doesn't support BufferObj::mapWriteOnly
+        uint8_t *ptr = nullptr;
+    #endif
 		if( ! ptr ) {
 			CI_LOG_E( "Failed to map VBO" );
 			return;
@@ -579,7 +584,7 @@ void VboMesh::bufferAttrib( geom::Attrib attrib, size_t dataSizeBytes, const voi
 		
 		layoutVbo->second->unmap();
 #else
-		CI_LOG_E( "ANGLE does not support bufferAttrib() with interleaved data" );
+		CI_LOG_E( "Platform's OpenGL does not support bufferAttrib() with interleaved data" );
 #endif		
 	}
 }
@@ -594,7 +599,7 @@ void VboMesh::bufferIndices( size_t dataSizeBytes, const void *data )
 	mIndices->bufferSubData( 0, dataSizeBytes, data );
 }
 
-#if defined( CINDER_GL_ES_3 ) || (! defined( CINDER_GL_ANGLE ))
+#if defined( CINDER_GL_HAS_MAP_BUFFER ) || defined( CINDER_GL_HAS_MAP_BUFFER_RANGE )
 template<typename T>
 VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, int dims, bool orphanExisting )
 {
@@ -613,10 +618,17 @@ VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, int dims, bo
 	else {
 		MappedVboInfo mappedVboInfo;
 		mappedVboInfo.mRefCount = 1;
-		if( orphanExisting )
+		if( orphanExisting ) {
 			mappedVboInfo.mPtr = layoutVbo->second->mapReplace();
-		else
+        }
+		else {
+    #if ! defined( CINDER_EMSCRIPTEN )
 			mappedVboInfo.mPtr = layoutVbo->second->mapWriteOnly();
+    #else
+            // Emscripten doesn't support BufferObj::mapWriteOnly
+            CI_LOG_E( "Failed to map VBO" );
+    #endif
+        }
 		mMappedVbos[layoutVbo->second] = mappedVboInfo;
 		dataPtr = mappedVboInfo.mPtr;
 	}
@@ -700,7 +712,7 @@ void VboMesh::unmapVboImpl( const VboRef &vbo )
 		CI_LOG_E( "Attempto unmap VboMesh::MappedAttrib that was never mapped." );
 }
 
-#endif // defined(CINDER_GL_ES_3) || (! defined( CINDER_GL_ANGLE ))
+#endif // defined( CINDER_GL_HAS_MAP_BUFFER ) || defined( CINDER_GL_HAS_MAP_BUFFER_RANGE )
 
 std::vector<VboRef>	VboMesh::getVertexArrayVbos()
 {

@@ -40,11 +40,11 @@
 	#include <OpenGLES/ES2/glext.h>
 #endif
 
-#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
  	#include "EGL/egl.h"
 #endif
 
-#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 /* 
   #if ! defined( CINDER_GL_HAS_INSTANCED_ARRAYS )
  	using PFNGLVERTEXATTRIBDIVISOREXTPROC = void*;
@@ -89,7 +89,9 @@ class EnvironmentEs : public Environment {
 	bool 	supportsInstancedArrays() const override;
 	bool	supportsTextureLod() const override;
 	bool	supportsGeometryShader() const override;
-	bool	supportsTessellationShader() const override;	
+	bool	supportsTessellationShader() const override;
+	bool	supportsMapBuffer() const override;
+	bool	supportsMapBufferRange() const override;
 
 	GLenum	getPreferredIndexType() const override;
 		
@@ -112,7 +114,7 @@ Environment* allocateEnvironmentEs()
 
 void EnvironmentEs::initializeFunctionPointers()
 {
-#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	::gl_es_load();
 
 /*
@@ -208,7 +210,7 @@ bool EnvironmentEs::supportsInstancedArrays() const
 
 bool EnvironmentEs::supportsTextureLod() const
 {
-#if defined( CINDER_COCOA_TOUCH ) || defined( CINDER_GL_ES_3 )
+#if defined( CINDER_COCOA_TOUCH ) || ( CINDER_GL_ES_VERSION >= CINDER_GL_ES_VERSION_3 )
 	return true;
 #else
 	static bool result = isExtensionAvailable( "GL_EXT_shader_texture_lod" );
@@ -226,6 +228,22 @@ bool EnvironmentEs::supportsTessellationShader() const
 {
 	static bool result = isExtensionAvailable( "GL_EXT_tessellation_shader" );
 	return result;
+}
+
+bool EnvironmentEs::supportsMapBuffer() const
+{
+	static bool result = isExtensionAvailable( "GL_OES_mapbuffer" );
+	return result;
+}
+
+bool EnvironmentEs::supportsMapBufferRange() const
+{
+#if ( CINDER_GL_ES_VERSION >= CINDER_GL_ES_VERSION_3 )
+    return true;
+#else
+	static bool result = isExtensionAvailable( "GL_EXT_map_buffer_range" );
+	return result;
+#endif
 }
 
 GLenum EnvironmentEs::getPreferredIndexType() const
@@ -254,7 +272,7 @@ void EnvironmentEs::allocateTexStorage2d( GLenum target, GLsizei levels, GLenum 
 #if defined( CINDER_GL_ES_2 )
 	// Test at runtime for presence of 'glTexStorage2D' and just force mutable storage if it's not available
 	// both ANGLE and iOS support EXT_texture_storage
-  #if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+  #if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	static auto texStorage2DFn = (void (*)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height))nullptr;
   #else	
 	static auto texStorage2DFn = glTexStorage2DEXT;
@@ -307,7 +325,7 @@ void EnvironmentEs::allocateTexStorageCubeMap( GLsizei levels, GLenum internalFo
 #if defined( CINDER_GL_ES_2 )
 	// test at runtime for presence of 'glTexStorage2D' and just force mutable storage if it's not available
 	// both ANGLE and iOS support EXT_texture_storage
-  #if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+  #if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	static auto texStorage2DFn = (void (*)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height))nullptr;
   #else	
 	static auto texStorage2DFn = glTexStorage2DEXT;
@@ -345,6 +363,8 @@ std::string	EnvironmentEs::generateVertexShader( const ShaderDef &shader )
   #elif ( CINDER_GL_ES_VERSION == CINDER_GL_ES_VERSION_3_2 )
 	ss << "#version 320 es";
   #endif
+
+	ss << "precision highp float;";
 
 	ss << "uniform mat4 ciModelViewProjection;";
 

@@ -43,7 +43,7 @@
 	#include <Windows.h>
 	#undef min
 	#undef max
-#elif defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#elif defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	#include "cinder/linux/FreeTypeUtil.h" 
 #endif
 #include "cinder/Unicode.h"
@@ -328,7 +328,7 @@ TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Forma
 	delete [] pBuff;
 }
 
-#elif defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#elif defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 
 TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Format &format )
 	: mFont( font ), mFormat( format )
@@ -712,7 +712,7 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<Font::Glyph,vec2> > &g
 void TextureFont::drawString( const std::string &str, const vec2 &baseline, const DrawOptions &options )
 {
 	TextBox tbox = TextBox().font( mFont ).text( str ).size( TextBox::GROW, TextBox::GROW ).ligate( options.getLigate() );
-#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs( getCachedGlyphMetrics() );
 #else
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs();
@@ -723,7 +723,7 @@ void TextureFont::drawString( const std::string &str, const vec2 &baseline, cons
 void TextureFont::drawString( const std::string &str, const Rectf &fitRect, const vec2 &offset, const DrawOptions &options )
 {
 	TextBox tbox = TextBox().font( mFont ).text( str ).size( TextBox::GROW, fitRect.getHeight() ).ligate( options.getLigate() );
-#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs( getCachedGlyphMetrics() );
 #else
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs();
@@ -734,7 +734,7 @@ void TextureFont::drawString( const std::string &str, const Rectf &fitRect, cons
 void TextureFont::drawStringWrapped( const std::string &str, const Rectf &fitRect, const vec2 &offset, const DrawOptions &options )
 {
 	TextBox tbox = TextBox().font( mFont ).text( str ).size( fitRect.getWidth(), fitRect.getHeight() ).ligate( options.getLigate() );
-#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs( getCachedGlyphMetrics() );
 #else
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs();
@@ -750,7 +750,7 @@ vec2 TextureFont::measureString( const std::string &str, const DrawOptions &opti
 	return tbox.measure();
 #else
 
-#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX ) || defined( CINDER_EMSCRIPTEN )
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs( getCachedGlyphMetrics() );
 #else
 	vector<pair<Font::Glyph,vec2> > glyphMeasures = tbox.measureGlyphs();

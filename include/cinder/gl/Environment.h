@@ -58,6 +58,8 @@
 	#else
 		typedef struct GLFWwindow 	GLFWwindow;
 	#endif
+#elif defined( CINDER_EMSCRIPTEN )
+	typedef struct GLFWwindow 	GLFWwindow;
 #endif
 
 namespace cinder { namespace gl {
@@ -85,6 +87,8 @@ class Environment {
 	virtual bool			supportsTextureLod() const = 0;
 	virtual bool 			supportsGeometryShader() const = 0;
 	virtual bool 			supportsTessellationShader() const = 0;
+	virtual bool			supportsMapBuffer() const = 0;
+	virtual bool			supportsMapBufferRange() const = 0;
 
 	virtual GLenum			getPreferredIndexType() const  = 0;
 
@@ -181,6 +185,14 @@ struct PlatformDataAndroid : public Context::PlatformData {
 		GLFWwindow 		*mContext = nullptr;
 	};
   #endif
+#elif defined( CINDER_EMSCRIPTEN )
+	struct PlatformDataEmscripten : public Context::PlatformData {
+	PlatformDataEmscripten( GLFWwindow *context )
+		: mContext( context )
+	{}
+
+	GLFWwindow 		*mContext = nullptr;
+};
 #endif
 
 } } // namespace cinder::gl

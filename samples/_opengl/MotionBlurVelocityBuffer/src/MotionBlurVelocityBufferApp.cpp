@@ -20,7 +20,9 @@
 #include "cinder/Rand.h"
 
 #include "cinder/Log.h"
-#include "cinder/params/Params.h"
+#if ! ( defined( CINDER_ANDROID ) || defined( CINDER_EMSCRIPTEN ) )
+	#include "cinder/params/Params.h"
+#endif
 
 #include "BlurrableThings.h"
 
@@ -95,7 +97,7 @@ void MotionBlurVelocityBufferApp::setup()
 	createBuffers();
 	loadShaders();
 
-#if ! defined( CINDER_ANDROID )
+#if ! ( defined( CINDER_ANDROID ) || defined( CINDER_EMSCRIPTEN ) )
 	mParams = params::InterfaceGl::create( "Motion Blur Options", ivec2( 250, 300 ) );
 	mParams->addParam( "Average GPU Draw (ms)", &mAverageGpuTime );
 	mParams->addParam( "Average CPU Draw (ms)", &mAverageCpuTime );
