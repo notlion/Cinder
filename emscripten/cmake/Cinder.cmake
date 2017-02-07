@@ -1,4 +1,3 @@
-
 # Assume Debug if a build type isn't specified
 if( "" STREQUAL "${CMAKE_BUILD_TYPE}" )
     set( CMAKE_BUILD_TYPE "Debug" CACHE FILEPATH "" FORCE )
@@ -25,7 +24,7 @@ set( CMAKE_C_FLAGS_DEBUG   "${C_FLAGS} -g -O0" )
 set( CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os" )
 
 # CPP Flags
-set( CXX_FLAGS "-stdlib=libc++ -std=c++11 -fvisibility=default -D_UNIX ${CINDER_GL_ES_FLAGS} -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s DISABLE_EXCEPTION_CATCHING=0" )
+set( CXX_FLAGS "-stdlib=libc++ -std=c++14 -fvisibility=default -D_UNIX ${CINDER_GL_ES_FLAGS} -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s DISABLE_EXCEPTION_CATCHING=0" )
 set( CMAKE_CXX_FLAGS_DEBUG    "${CXX_FLAGS} -g -O0 -fexceptions -frtti" )
 set( CMAKE_CXX_FLAGS_RELEASE  "${CXX_FLAGS} -Os -fexceptions -frtti" )
 
@@ -37,4 +36,3 @@ set( CMAKE_DEBUG_POSTFIX "_d" )
 if( "Debug" STREQUAL "${CMAKE_BUILD_TYPE}" )
     set( CINDER_LIB_SUFFIX "_d" CACHE FILEPATH "" FORCE )
 endif()
-
