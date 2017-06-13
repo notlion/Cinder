@@ -28,20 +28,16 @@
 #include "cinder/gl/Texture.h"
 
 #include <map>
-#if defined( _MSC_VER ) && ( _MSC_VER >= 1600 ) || defined( _LIBCPP_VERSION ) || defined( __GLIBCXX__ )
-	#include <unordered_map>
-#else
-	#include <boost/unordered_map.hpp>
-#endif
+#include <unordered_map>
 
 namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class TextureFont>	TextureFontRef;
 typedef std::shared_ptr<class GlslProg>		GlslProgRef;
 
-class TextureFont {
+class CI_API TextureFont {
   public:
-	class Format {
+	class CI_API Format {
 	  public:
 		Format() : mTextureWidth( 1024 ), mTextureHeight( 1024 ), mPremultiply( false ), mMipmapping( false )
 		{}
@@ -71,7 +67,7 @@ class TextureFont {
 		bool		mMipmapping;
 	};
 
-	struct DrawOptions {
+	struct CI_API DrawOptions {
 		DrawOptions() : mClipHorizontal( true ), mClipVertical( true ), mPixelSnap( true ), mLigate( false ), mScale( 1 ) {}
 
 		//! Returns whether the output clips horizontally
@@ -163,11 +159,7 @@ class TextureFont {
 		vec2		mOriginOffset;
 	};
 	
-#if defined( _MSC_VER ) && ( _MSC_VER >= 1600 ) || defined( _LIBCPP_VERSION ) || defined( __GLIBCXX__ )
 	std::unordered_map<Font::Glyph, GlyphInfo>		mGlyphMap;
-#else
-	boost::unordered_map<Font::Glyph, GlyphInfo>	mGlyphMap;
-#endif
 	std::vector<gl::TextureRef>						mTextures;
 	Font											mFont;
 	Format											mFormat;

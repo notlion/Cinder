@@ -269,7 +269,7 @@ public:
 			int modifiers = getGlfwMouseButtons( glfwWindow ) | getGlfwKeyModifiersMouse( glfwWindow );
 
 			float wheelDelta = xoffset + yoffset;
-			MouseEvent event( getWindow(), 0, (int)mouseX, (int)mouseX, modifiers, wheelDelta , 0 );
+			MouseEvent event( getWindow(), 0, (int)mouseX, (int)mouseY, modifiers, wheelDelta , 0 );
 			cinderWindow->emitMouseWheel( &event );	
 		}
 	}
@@ -425,7 +425,9 @@ RendererRef AppImplLinux::findSharedRenderer( const RendererRef &searchRenderer 
 
 	for( const auto &win : mWindows ) {
 		RendererRef renderer = win->getRenderer();
-		if( renderer && ( typeid(*renderer) == typeid(*searchRenderer) ) ) {
+		auto rendererPtr = renderer.get();
+		auto searchRendererPtr = searchRenderer.get();
+		if( renderer && ( typeid(*rendererPtr) == typeid(*searchRendererPtr) ) ) {
 			return renderer;
 		}
 	}

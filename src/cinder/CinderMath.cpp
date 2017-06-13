@@ -99,8 +99,8 @@ int solveCubic( T a, T b, T c, T d, T result[3] )
 		return 3;
 	}
 }
-template int solveCubic( float a, float b, float c, float d, float result[3] );
-template int solveCubic( double a, double b, double c, double d, double result[3] );
+template CI_API int solveCubic( float a, float b, float c, float d, float result[3] );
+template CI_API int solveCubic( double a, double b, double c, double d, double result[3] );
 
 namespace {
 float PointOnEllipseBisector( int numComponents, const vec2 &extents, const vec2 &y, vec2& x )
@@ -522,8 +522,8 @@ glm::tvec2<T, glm::defaultp> getClosestPointLinear( const glm::tvec2<T, glm::def
 		return controlPoints[0];
 	}
 }
-template glm::tvec2<float, glm::defaultp> getClosestPointLinear( const glm::tvec2<float, glm::defaultp> *controlPoints, const glm::tvec2<float, glm::defaultp> & testPoint );
-template glm::tvec2<double, glm::defaultp> getClosestPointLinear( const glm::tvec2<double, glm::defaultp> *controlPoints, const glm::tvec2<double, glm::defaultp> & testPoint );
+template CI_API glm::tvec2<float, glm::defaultp> getClosestPointLinear( const glm::tvec2<float, glm::defaultp> *controlPoints, const glm::tvec2<float, glm::defaultp> & testPoint );
+template CI_API glm::tvec2<double, glm::defaultp> getClosestPointLinear( const glm::tvec2<double, glm::defaultp> *controlPoints, const glm::tvec2<double, glm::defaultp> & testPoint );
 
 template<typename T>
 glm::tvec2<T, glm::defaultp> getClosestPointQuadratic( const glm::tvec2<T, glm::defaultp> *controlPoints, const glm::tvec2<T, glm::defaultp> & testPoint )
@@ -541,7 +541,7 @@ glm::tvec2<T, glm::defaultp> getClosestPointQuadratic( const glm::tvec2<T, glm::
 	int solutions = solveCubic<T>( a, b, c, d, t );
 
 	T distance2 = std::numeric_limits<T>::max();
-	for( int i = 0; i < 3; ++i ) {
+	for( int i = 0; i < solutions; ++i ) {
 		T u = glm::clamp( t[i], T{0}, T{1} );
 		T v = T{1} - u;
 		glm::tvec2<T, glm::defaultp> p = controlPoints[0] * ( v*v ) + controlPoints[1] * ( T{2} * u*v ) + controlPoints[2] * ( u*u );
@@ -555,8 +555,8 @@ glm::tvec2<T, glm::defaultp> getClosestPointQuadratic( const glm::tvec2<T, glm::
 
 	return closest;
 }
-template glm::tvec2<float, glm::defaultp> getClosestPointQuadratic( const glm::tvec2<float, glm::defaultp> *controlPoints, const glm::tvec2<float, glm::defaultp> & testPoint );
-template glm::tvec2<double, glm::defaultp> getClosestPointQuadratic( const glm::tvec2<double, glm::defaultp> *controlPoints, const glm::tvec2<double, glm::defaultp> & testPoint );
+template CI_API glm::tvec2<float, glm::defaultp> getClosestPointQuadratic( const glm::tvec2<float, glm::defaultp> *controlPoints, const glm::tvec2<float, glm::defaultp> & testPoint );
+template CI_API glm::tvec2<double, glm::defaultp> getClosestPointQuadratic( const glm::tvec2<double, glm::defaultp> *controlPoints, const glm::tvec2<double, glm::defaultp> & testPoint );
 
 template<typename T>
 glm::tvec2<T, glm::defaultp> getClosestPointCubic( const glm::tvec2<T, glm::defaultp> *controlPoints, const glm::tvec2<T, glm::defaultp> & testPoint )
@@ -597,8 +597,8 @@ glm::tvec2<T, glm::defaultp> getClosestPointCubic( const glm::tvec2<T, glm::defa
 	// Return the point on the curve at parameter value t.
 	return ( bezier<T>( controlPoints, t ) );
 }
-template glm::tvec2<float, glm::defaultp> getClosestPointCubic<float>( const glm::tvec2<float, glm::defaultp> *controlPoints, const glm::tvec2<float, glm::defaultp> & testPoint );
-template glm::tvec2<double, glm::defaultp> getClosestPointCubic<double>( const glm::tvec2<double, glm::defaultp> *controlPoints, const glm::tvec2<double, glm::defaultp> & testPoint );
+template CI_API glm::tvec2<float, glm::defaultp> getClosestPointCubic<float>( const glm::tvec2<float, glm::defaultp> *controlPoints, const glm::tvec2<float, glm::defaultp> & testPoint );
+template CI_API glm::tvec2<double, glm::defaultp> getClosestPointCubic<double>( const glm::tvec2<double, glm::defaultp> *controlPoints, const glm::tvec2<double, glm::defaultp> & testPoint );
 
 union float32_t
 {
