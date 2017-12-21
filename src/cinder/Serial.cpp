@@ -89,7 +89,7 @@ Serial::Impl::Impl( const Serial::Device &device, int baudRate )
 	baudToConstant[4800] = B4800;
 	baudToConstant[9600] = B9600;
 	baudToConstant[19200] = B19200;
-#if defined( CINDER_MAC )
+#if defined( B28800 )
 	baudToConstant[28800] = B28800;
 #endif
 	baudToConstant[38400] = B38400;
