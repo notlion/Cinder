@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.1 FATAL_ERROR )
+cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
 # Suppress compiler checks. Why? CMake seems to be inconsistent
@@ -652,7 +652,6 @@ set( CINDER_CXX_SRC_FILES
     ${CINDER_SRC_DIR}/cinder/CinderAssert.cpp
     ${CINDER_SRC_DIR}/cinder/CinderMath.cpp
     ${CINDER_SRC_DIR}/cinder/Color.cpp
-    ${CINDER_SRC_DIR}/cinder/ConvexHull.cpp
     ${CINDER_SRC_DIR}/cinder/DataSource.cpp
     ${CINDER_SRC_DIR}/cinder/DataTarget.cpp
     ${CINDER_SRC_DIR}/cinder/Display.cpp

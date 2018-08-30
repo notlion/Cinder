@@ -23,6 +23,7 @@
 
 #include "cinder/audio/Target.h"
 #include "cinder/CinderAssert.h"
+#include "cinder/audio/FileOggVorbis.h"
 
 #include "cinder/Utilities.h"
 
@@ -47,10 +48,16 @@ std::unique_ptr<TargetFile> TargetFile::create( const DataTargetRef &dataTarget,
 #endif
 	ext = ( ( ! ext.empty() ) && ( ext[0] == '.' ) ) ? ext.substr( 1, string::npos ) : ext;
 
+	if ( ext == "ogg" ) {
+		return std::unique_ptr<TargetFile>( new TargetFileOggVorbis( dataTarget, sampleRate, numChannels, sampleType ) );
+	}
+
 #if defined( CINDER_COCOA )
 	return std::unique_ptr<TargetFile>( new cocoa::TargetFileCoreAudio( dataTarget, sampleRate, numChannels, sampleType, ext ) );
 #elif defined( CINDER_MSW )
 	return std::unique_ptr<TargetFile>( new msw::TargetFileMediaFoundation( dataTarget, sampleRate, numChannels, sampleType, ext ) );
+#else
+	return nullptr;
 #endif
 }
 

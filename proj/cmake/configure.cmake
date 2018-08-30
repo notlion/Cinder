@@ -3,6 +3,9 @@
 
 option( CINDER_VERBOSE "Print verbose build configuration messages. " OFF )
 option( BUILD_SHARED_LIBS "Build Cinder as a shared library. " OFF )
+option( CINDER_DISABLE_AUDIO "Build Cinder without audio support. " OFF )
+option( CINDER_DISABLE_VIDEO "Build Cinder without video support. " OFF )
+option( CINDER_DISABLE_ANTTWEAKBAR "Build Cinder without AntTweakBar support. " OFF )
 
 include( ${CMAKE_CURRENT_LIST_DIR}/utilities.cmake )
 
@@ -88,6 +91,26 @@ else()
 	set( CINDER_GL_CORE TRUE )
 endif()
 
+
+# Enable headless GL rendering support.
+set( CINDER_HEADLESS_GL "" CACHE STRING "Enable headless rendering. Valid options: egl" )
+if( CINDER_HEADLESS_GL )
+	if( CINDER_LINUX )
+		string( TOLOWER "${CINDER_HEADLESS_GL}" CINDER_HEADLESS_GL_LOWER )
+		if( "egl" STREQUAL "${CINDER_HEADLESS_GL_LOWER}" )
+			set( CINDER_HEADLESS True )
+			set( CINDER_HEADLESS_GL_EGL True )
+		elseif( "osmesa" STREQUAL "${CINDER_HEADLESS_GL_LOWER}" )
+			set( CINDER_HEADLESS True )
+			set( CINDER_HEADLESS_GL_OSMESA True )
+		else()
+			message( FATAL_ERROR "Unsupported headless GL rendering option: " ${CINDER_HEADLESS_GL_LOWER} " Available options include: egl, ..." )
+		endif()
+	else()
+		message( FATAL_ERROR "Cinder headless GL rendering support is only available on Linux." )
+	endif()
+endif()
+
 # Configure platform variables needed by both libcinder and user projects.
 if( CINDER_LINUX )
 	# Find architecture name.
@@ -102,10 +125,10 @@ elseif( CINDER_ANDROID )
 	#set( CINDER_ANDROID_NDK_ARCH "armeabi-v7a" CACHE STRING "Android NDK target architecture." )
 	set( CINDER_TARGET_SUBFOLDER "android/android-${CINDER_ANDROID_NDK_PLATFORM}/${CINDER_ANDROID_NDK_ARCH}" )
 elseif( CINDER_MSW )
-    set( CINDER_ARCH "x86" )
-    if( CMAKE_CL_64 )
-        set( CINDER_ARCH "x64" )
-    endif()
+	set( CINDER_ARCH "x86" )
+	if( CMAKE_CL_64 )
+		set( CINDER_ARCH "x64" )
+	endif()
 	set( CINDER_TARGET_SUBFOLDER "msw/${CINDER_ARCH}" ) # TODO: place in msw/arch folder (x64 or x86)
 endif()
 

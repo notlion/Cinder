@@ -71,11 +71,13 @@ void Context::registerClearStatics()
 	// A signal is registered for app cleanup in order to ensure that all Node's and their
 	// dependencies are destroyed before static memory goes down - this avoids a crash at cleanup
 	// in r8brain's static processing containers.
-	// TODO: consider leaking the master context by default and providing a public clear function.
-	app::AppBase::get()->getSignalCleanup().connect( [] {
-		sDeviceManager.reset();
-		sMasterContext.reset();
-	} );
+	auto app = app::AppBase::get();
+	if( app ) {
+		app->getSignalCleanup().connect( [] {
+			sDeviceManager.reset();
+			sMasterContext.reset();
+		} );
+	}
 }
 
 // static
@@ -135,7 +137,7 @@ void Context::setMaster( Context *masterContext, DeviceManager *deviceManager )
 }
 
 Context::Context()
-	: mEnabled( false ), mAutoPullRequired( false ), mAutoPullCacheDirty( false ), mNumProcessedFrames( 0 )
+	: mEnabled( false ), mAutoPullRequired( false ), mAutoPullCacheDirty( false ), mNumProcessedFrames( 0 ), mTimeDuringLastProcessLoop( -1.0 )
 {
 }
 
@@ -167,7 +169,9 @@ void Context::disable()
 		return;
 
 	mEnabled = false;
-	getOutput()->disable();
+	auto output = getOutput();
+	if( output )
+		getOutput()->disable();
 }
 
 void Context::setEnabled( bool b )
@@ -211,7 +215,21 @@ void Context::disconnectAllNodes()
 
 void Context::setOutput( const OutputNodeRef &output )
 {
+	if( mOutput ) {
+		if( output && mOutput->getOutputFramesPerBlock() != output->getOutputFramesPerBlock() || mOutput->getOutputSampleRate() != output->getOutputSampleRate() ) {
+			// params changed used in sizing buffers, uninit all connected nodes so they can reconfigure
+			uninitializeAllNodes();
+		}
+		else {
+			// params are the same, so just uninitialize the old output.
+			uninitializeNode( mOutput );
+		}
+	}
+
 	mOutput = output;
+
+	if( mOutput )
+		initializeAllNodes();
 }
 
 const OutputNodeRef& Context::getOutput()
@@ -271,6 +289,38 @@ void Context::uninitRecursive( const NodeRef &node, set<NodeRef> &traversedNodes
 	node->uninitializeImpl();
 }
 
+bool Context::isAudioThread() const
+{
+	return mAudioThreadId == std::this_thread::get_id();
+}
+
+void Context::preProcess()
+{
+	mProcessTimer.start();
+	mAudioThreadId = std::this_thread::get_id();
+
+	preProcessScheduledEvents();
+}
+
+void Context::postProcess()
+{
+	processAutoPulledNodes();
+	postProcessScheduledEvents();
+	incrementFrameCount();
+
+	mProcessTimer.stop();
+	mTimeDuringLastProcessLoop = mProcessTimer.getSeconds();
+}
+
+void Context::incrementFrameCount()
+{
+	mNumProcessedFrames += getFramesPerBlock();
+}
+
+// ----------------------------------------------------------------------------------------------------
+// NodeAutoPullable Handling
+// ----------------------------------------------------------------------------------------------------
+
 void Context::addAutoPulledNode( const NodeRef &node )
 {
 	mAutoPulledNodes.insert( node );
@@ -293,43 +343,6 @@ void Context::removeAutoPulledNode( const NodeRef &node )
 		mAutoPullRequired = false;
 }
 
-void Context::schedule( double when, const NodeRef &node, bool enable, const std::function<void ()> &func )
-{
-	const uint64_t framesPerBlock = (uint64_t)getFramesPerBlock();
-	uint64_t eventFrameThreshold = timeToFrame( when, static_cast<double>( getSampleRate() ) );
-
-	// Place the threshold back one block so we can process the block first, guarding against wrap around
-	if( eventFrameThreshold >= framesPerBlock )
-		eventFrameThreshold -= framesPerBlock;
-
-	lock_guard<mutex> lock( mMutex );
-	mScheduledEvents.push_back( ScheduledEvent( eventFrameThreshold, node, enable, func ) );
-}
-
-bool Context::isAudioThread() const
-{
-	return mAudioThreadId == std::this_thread::get_id();
-}
-
-void Context::preProcess()
-{
-	mAudioThreadId = std::this_thread::get_id();
-
-	preProcessScheduledEvents();
-}
-
-void Context::postProcess()
-{
-	processAutoPulledNodes();
-	postProcessScheduledEvents();
-	incrementFrameCount();
-}
-
-void Context::incrementFrameCount()
-{
-	mNumProcessedFrames += getFramesPerBlock();
-}
-
 void Context::processAutoPulledNodes()
 {
 	if( ! mAutoPullRequired )
@@ -343,47 +356,6 @@ void Context::processAutoPulledNodes()
 	}
 }
 
-void Context::preProcessScheduledEvents()
-{
-	const uint64_t framesPerBlock = (uint64_t)getFramesPerBlock();
-	const uint64_t numProcessedFrames = mNumProcessedFrames;
-
-	for( auto &event : mScheduledEvents ) {
-		if( numProcessedFrames >= event.mEventFrameThreshold ) {
-			uint64_t frameOffset = numProcessedFrames - event.mEventFrameThreshold;
-			if( event.mEnable ) {
-				event.mNode->mProcessFramesRange.first = size_t( framesPerBlock - frameOffset );
-				event.mFunc();
-			}
-			else {
-				// set the process range but don't call its function until postProcess() (which should be disable()'ing the Node)
-				event.mNode->mProcessFramesRange.second = (size_t)frameOffset;
-			}
-
-			event.mFinished = true;
-		}
-	}
-}
-
-void Context::postProcessScheduledEvents()
-{
-	for( auto eventIt = mScheduledEvents.begin(); eventIt != mScheduledEvents.end(); /* */ ) {
-		if( eventIt->mFinished ) {
-			if( ! eventIt->mEnable )
-				eventIt->mFunc();
-
-			// reset process frame range
-			auto &range = eventIt->mNode->mProcessFramesRange;
-			range.first = 0;
-			range.second = getFramesPerBlock();
-
-			eventIt = mScheduledEvents.erase( eventIt );
-		}
-		else
-			++eventIt;
-	}
-}
-
 const std::vector<Node *>& Context::getAutoPulledNodes()
 {
 	if( mAutoPullCacheDirty ) {
@@ -393,6 +365,93 @@ const std::vector<Node *>& Context::getAutoPulledNodes()
 	}
 	return mAutoPullCache;
 }
+
+// ----------------------------------------------------------------------------------------------------
+// Event Scheduling
+// ----------------------------------------------------------------------------------------------------
+
+void Context::scheduleEvent( double when, const NodeRef &node, bool callFuncBeforeProcess, const std::function<void ()> &func )
+{
+	const uint64_t framesPerBlock = (uint64_t)getFramesPerBlock();
+	uint64_t eventFrameThreshold = std::max( mNumProcessedFrames.load(), timeToFrame( when, static_cast<double>( getSampleRate() ) ) );
+
+	// Place the threshold back one block so we can process the block first, guarding against wrap around
+	if( eventFrameThreshold >= framesPerBlock )
+		eventFrameThreshold -= framesPerBlock;
+
+	// TODO: support multiple events, at the moment only supporting one per node.
+	if( node->mEventScheduled ) {
+		cancelScheduledEvents( node );
+	}
+
+	lock_guard<mutex> lock( mMutex );
+	node->mEventScheduled = true;
+	mScheduledEvents.push_back( ScheduledEvent( eventFrameThreshold, node, callFuncBeforeProcess, func ) );
+}
+
+void Context::cancelScheduledEvents( const NodeRef &node )
+{
+	lock_guard<mutex> lock( mMutex );
+
+	for( auto eventIt = mScheduledEvents.begin(); eventIt != mScheduledEvents.end(); ++eventIt ) {
+		if( eventIt->mNode == node ) {
+			// reset process frame range to an entire block
+			auto &range = eventIt->mNode->mProcessFramesRange;
+			range.first = 0;
+			range.second = getFramesPerBlock();
+
+			eventIt->mNode->mEventScheduled = false;
+			mScheduledEvents.erase( eventIt );
+			break;
+		}
+	}
+}
+
+// note: we should be synchronized with mMutex by the OutputDeviceNode impl, so mScheduledEvents is safe to modify
+void Context::preProcessScheduledEvents()
+{
+	const uint64_t framesPerBlock = (uint64_t)getFramesPerBlock();
+	const uint64_t numProcessedFrames = mNumProcessedFrames;
+
+	for( auto &event : mScheduledEvents ) {
+		if( numProcessedFrames >= event.mEventFrameThreshold ) {
+			event.mProcessingEvent = true;
+			uint64_t frameOffset = numProcessedFrames - event.mEventFrameThreshold;
+			if( event.mCallFuncBeforeProcess ) {
+				event.mNode->mProcessFramesRange.first = size_t( framesPerBlock - frameOffset );
+				event.mFunc();
+			}
+			else {
+				// set the process range but don't call its function until postProcess()
+				event.mNode->mProcessFramesRange.second = (size_t)frameOffset;
+			}
+		}
+	}
+}
+
+void Context::postProcessScheduledEvents()
+{
+	for( auto eventIt = mScheduledEvents.begin(); eventIt != mScheduledEvents.end(); /* */ ) {
+		if( eventIt->mProcessingEvent ) {
+			if( ! eventIt->mCallFuncBeforeProcess )
+				eventIt->mFunc();
+
+			// reset process frame range to an entire block
+			auto &range = eventIt->mNode->mProcessFramesRange;
+			range.first = 0;
+			range.second = getFramesPerBlock();
+
+			eventIt->mNode->mEventScheduled = false;
+			eventIt = mScheduledEvents.erase( eventIt );
+		}
+		else
+			++eventIt;
+	}
+}
+
+// ----------------------------------------------------------------------------------------------------
+// Debugging Helpers
+// ----------------------------------------------------------------------------------------------------
 
 namespace {
 

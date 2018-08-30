@@ -45,6 +45,7 @@ public:
 		::glfwSetCursorPosCallback( glfwWindow, GlfwCallbacks::onMousePos );
 		::glfwSetMouseButtonCallback( glfwWindow, GlfwCallbacks::onMouseButton );
 		::glfwSetScrollCallback( glfwWindow, GlfwCallbacks::onMouseWheel );
+		::glfwSetDropCallback( glfwWindow, GlfwCallbacks::onFileDrop );
 	}
 
 	static void unregisterWindowEvents( GLFWwindow *glfwWindow ) {
@@ -273,6 +274,18 @@ public:
 			cinderWindow->emitMouseWheel( &event );	
 		}
 	}
+
+	static void onFileDrop( GLFWwindow *glfwWindow, int count, const char **paths )
+	{
+		std::vector<fs::path> files;
+		for( int i = 0; i < count; i++ ) {
+			files.push_back( paths[i] );
+		}
+
+		vec2 dropPoint = { 0, 0 }; // note: doesn't appear to be any way to get the drop position.
+		FileDropEvent dropEvent( getWindow(), dropPoint.x, dropPoint.y, files );
+		getWindow()->emitFileDrop( &dropEvent );
+	}
 };
 
 std::map<GLFWwindow*, std::pair<AppImplLinux*,WindowRef>> GlfwCallbacks::sWindowMapping;
@@ -417,10 +430,10 @@ void AppImplLinux::run()
 	mMainWindow.reset();
 }
 
-RendererRef AppImplLinux::findSharedRenderer( const RendererRef &searchRenderer )
+WindowImplLinux* AppImplLinux::findSharedRendererWindow( const RendererRef &searchRenderer )
 {
 	if( ! searchRenderer ) {
-		return RendererRef();
+		return nullptr;
 	}
 
 	for( const auto &win : mWindows ) {
@@ -428,11 +441,11 @@ RendererRef AppImplLinux::findSharedRenderer( const RendererRef &searchRenderer 
 		auto rendererPtr = renderer.get();
 		auto searchRendererPtr = searchRenderer.get();
 		if( renderer && ( typeid(*rendererPtr) == typeid(*searchRendererPtr) ) ) {
-			return renderer;
+			return win;
 		}
 	}
 
-	return RendererRef();	
+	return nullptr;
 }
 
 WindowRef AppImplLinux::createWindow( Window::Format format )
@@ -441,7 +454,7 @@ WindowRef AppImplLinux::createWindow( Window::Format format )
 		format.setRenderer( mApp->getDefaultRenderer()->clone() );
 	}
 
-	mWindows.push_back( new WindowImplLinux( format, findSharedRenderer( format.getRenderer() ), this ) );
+	mWindows.push_back( new WindowImplLinux( format, findSharedRendererWindow( format.getRenderer() ), this ) );
 
 	// emit initial resize if we have fired setup
 	if( mSetupHasBeenCalled ) {

@@ -41,7 +41,7 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 <h1 id="building-libcinder-with-cmake">Building libcinder with CMake</h1>
-<p>To build libcinder from the command line, first make sure you have CMake version 3.0 or later installed. Then the process is similar to most other cmake projects you may have used, for example you can do the following from within the main cinder repo path:</p>
+<p>To build libcinder from the command line, first make sure you have CMake version 2.8 or later installed. Then the process is similar to most other cmake projects you may have used, for example you can do the following from within the main cinder repo path:</p>
 <pre><code>mkdir build
 cd build
 cmake ..
@@ -59,9 +59,13 @@ make -j4
 <p><code>CINDER_VERBOSE</code>: prints out verbose information from within Cinder's CMake scripts during configuration.</p>
 <p><code>CINDER_TARGET</code>: Sets the target to compile to. This defaults to one appropriate for the current operating system, but in some cases, for example Android, you must set it manually (i.e. <code>cmake -DCINDER_TARGET=android ..</code>).</p>
 <p><code>CINDER_TARGET_GL</code>: Sets the target OpenGL version. Usually defaults to <code>ogl</code> (desktop modern OpenGL), but other valid options are <code>es2</code>, <code>es3</code>, and <code>es31</code>. These are useful when you are building for something like the Raspberry Pi.</p>
+<p><code>CINDER_HEADLESS_GL</code>: Configure Cinder with support for headless rendering. This allows for offscreen (desktop modern OpenGL) rendering on systems without a display or even a GPU attached. Available options are <code>egl</code> for hardware accelerated rendering through <code>EGL</code> and the <code>EGL_EXT_platform_device</code> extension when available ( currently only NVIDIA ) or <code>osmesa</code> for software rendering through Mesa and OpenSWR. When building for <code>osmesa</code> you can additionally set <code>OSMESA_ROOT</code> to specify the root directory where Mesa is installed ( useful in the case that Mesa is installed locally and not systemwide ). Note that headless mode is supported only on Linux.</p>
 <p><code>CINDER_BUILD_TESTS</code>: Builds the unit tests (You can then run the tests from the command line with <code>make test</code> / <code>make check</code>).</p>
 <p><code>CINDER_BUILD_SAMPLE</code>: Specify the name of a single sample to build, after libcinder successfully builds. It will end up in the current build folder. For example, adding the option <code>-DCINDER_BUILD_SAMPLE=BasicApp</code> will also build the BasicApp sample and place it at <code>build/Debug/BasicApp/BasicApp.app</code>.</p>
 <p><code>CINDER_BUILD_ALL_SAMPLES</code>: Specifying <code>True</code> here will tell CMake to try to build all of the samples within cinder's samples directory. Be prepared to wait a while.</p>
+<p><code>CINDER_DISABLE_ANTTWEAKBAR</code>: Build Cinder without GUI support. Can be used for reducing buid time when GUI support through AntTweakBar is not a requirement.</p>
+<p><code>CINDER_DISABLE_AUDIO</code>: Build Cinder without audio support. Can be used for reducing build time when there is no requirement for audio features.</p>
+<p><code>CINDER_DISABLE_VIDEO</code>: Build Cinder without video support. Can be used for reducing build time when there is no requirement for video features.</p>
 <h1 id="building-your-application-with-cmake">Building your application with CMake</h1>
 <p>Often the best thing to do when adding CMake support to your own project is to look at one of the samples as a starting point. You'll find the <code>CMakeLists.txt</code> file will be at <code>proj/cmake/CMakeListst.txt</code>. You can still build it from the base directory of your project if you choose, with something like:</p>
 <pre><code>cd my_project
@@ -72,7 +76,7 @@ make -j4
 </code></pre>
 
 <p>To simplify configuring your project and the many platform-specific particulars, we use a utility function called <code>ci_make_app()</code>, which takes a number of arguments to build your application. For example, <a href="https://github.com/cinder/Cinder/blob/master/samples/_opengl/ObjLoader/proj/cmake/CMakeLists.txt">here</a> is the CMakeLists.txt file used for building the <code>_opengl/ObjLoader</code> sample:</p>
-<pre><code class="cmake">cmake_minimum_required( VERSION 3.0 FATAL_ERROR )
+<pre><code class="cmake">cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
 project( opengl-ObjLoader )

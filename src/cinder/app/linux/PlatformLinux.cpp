@@ -26,6 +26,7 @@
 #include "cinder/ImageSourceFileRadiance.h"
 #include "cinder/ImageSourceFileStbImage.h"
 #include "cinder/ImageTargetFileStbImage.h"
+#include "cinder/ImageFileTinyExr.h"
 #include "cinder/Utilities.h"
 #include "cinder/Log.h"
 
@@ -35,6 +36,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <pwd.h>
+#include <pthread.h>
 
 namespace cinder {
 
@@ -55,6 +57,8 @@ PlatformLinux::PlatformLinux()
 	ImageSourceFileRadiance::registerSelf();
 	ImageSourceFileStbImage::registerSelf();
 	ImageTargetFileStbImage::registerSelf();
+	ImageSourceFileTinyExr::registerSelf();
+	ImageTargetFileTinyExr::registerSelf();
 }
 
 PlatformLinux::~PlatformLinux()
@@ -459,6 +463,15 @@ std::vector<std::string> PlatformLinux::stackTrace()
 	return std::vector<std::string>();	
 }
 
+void PlatformLinux::setThreadName( const std::string &name )
+{
+	std::array<char,16> nameTrunc; // 16-byte maximum
+	strncpy( nameTrunc.data(), name.c_str(), 15 );
+	int result = pthread_setname_np( pthread_self(), nameTrunc.data() );
+	if( result != 0 )
+		CI_LOG_E( "setThreadName failed" );
+}
+
 void PlatformLinux::addDisplay( const DisplayRef &display )
 {
 	mDisplays.push_back( display );
@@ -478,7 +491,7 @@ void PlatformLinux::removeDisplay( const DisplayRef &display )
 
 std::string DisplayLinux::getName() const
 {
-#if defined( CINDER_LINUX_EGL_ONLY )
+#if defined( CINDER_LINUX_EGL_ONLY ) || defined( CINDER_HEADLESS )
 	return std::string();
 #else
 	return glfwGetMonitorName( mMonitor );
@@ -492,7 +505,7 @@ GLFWmonitor* DisplayLinux::getGlfwMonitor() const
 
 DisplayRef PlatformLinux::findDisplayFromGlfwMonitor( GLFWmonitor *monitor )
 {
-#if defined( CINDER_LINUX_EGL_ONLY )
+#if defined( CINDER_LINUX_EGL_ONLY ) || defined( CINDER_HEADLESS )
 	return nullptr;
 #else
 	for( auto &display : mDisplays ) {
@@ -505,7 +518,7 @@ DisplayRef PlatformLinux::findDisplayFromGlfwMonitor( GLFWmonitor *monitor )
 #endif
 }
 
-#if ! defined( CINDER_LINUX_EGL_ONLY )
+#if ! defined( CINDER_LINUX_EGL_ONLY ) && ! defined( CINDER_HEADLESS )
 void DisplayLinux::displayReconfiguredCallback( GLFWmonitor* monitor, int event )
 {
 	auto platform = app::PlatformLinux::get();

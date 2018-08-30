@@ -377,6 +377,16 @@ GlslProg::Format& GlslProg::Format::define( const std::string &define, const std
 	return *this;
 }
 
+const std::vector<std::pair<std::string,std::string>>& GlslProg::Format::getDefines() const
+{
+	if( mPreprocessor ) {
+		return mPreprocessor->getDefines();
+	}
+
+	static std::vector<std::pair<std::string,std::string>> sEmpty;
+	return sEmpty;
+}
+
 GlslProg::Format& GlslProg::Format::attribLocation( const std::string &attribName, GLint location )
 {
 	for( auto& attrib : mAttributes ) {
@@ -2018,7 +2028,7 @@ std::ostream& operator<<( std::ostream &os, const GlslProg &rhs )
 
 //////////////////////////////////////////////////////////////////////////
 // GlslProgCompileExc
-GlslProgCompileExc::GlslProgCompileExc( const std::string &log, GLint shaderType )
+GlslProgCompileExc::GlslProgCompileExc( const std::string &log, GLint shaderType ) : mShaderType( shaderType )
 {
 	string typeString;
 
