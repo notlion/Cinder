@@ -72,9 +72,9 @@ class AppCocoaTouch : public AppBase {
 	//! Emits a signal to ask the user what orientations are supported.
 	uint32_t							emitSupportedOrientations();
 	//! Returns the signal emitted when the interface is about to rotate to a new orientation. At this time, the Window's bounds and orientation have already been updated.
-	signals::Signal<void()>&			getSignalWillRotate() { return mSignalWillRotate; }
+	EventSignalWillRotate&				getSignalWillRotate() { return mSignalWillRotate; }
 	//! Emits the signal to notify the user that the orientation will change.
-	void								emitWillRotate();
+	void								emitWillRotate( double duration, TransitionEasing easing );
 	//! Returns the signal emitted when the interface is finished rotating to a new orientation.
 	signals::Signal<void()>&			getSignalDidRotate() { return mSignalDidRotate; }
 	//! Emits the signal to notify the user that the orientation did change.
@@ -221,7 +221,8 @@ class AppCocoaTouch : public AppBase {
 	signals::Signal<void(bool)>		mSignalProximitySensor, mSignalBatteryState;
 
 	EventSignalSupportedOrientations		mSignalSupportedOrientations;
-	signals::Signal<void()>					mSignalWillRotate, mSignalDidRotate;
+	EventSignalWillRotate					mSignalWillRotate;
+	signals::Signal<void()>					mSignalDidRotate;
 	signals::Signal<void(void)>				mSignalKeyboardWillShow, mSignalKeyboardWillHide;
 };
 

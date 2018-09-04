@@ -259,9 +259,9 @@ uint32_t AppCocoaTouch::emitSupportedOrientations()
 	return mSignalSupportedOrientations.emit();
 }
 
-void AppCocoaTouch::emitWillRotate()
+void AppCocoaTouch::emitWillRotate( double duration, TransitionEasing easing )
 {
-	mSignalWillRotate.emit();
+	mSignalWillRotate.emit(duration, easing);
 }
 
 void AppCocoaTouch::emitDidRotate()

@@ -64,8 +64,16 @@ enum InterfaceOrientation {
 	All						= (PortraitAll | LandscapeAll)
 };
 
+enum class TransitionEasing {
+	EaseInOut,
+	EaseIn,
+	EaseOut,
+	Linear
+};
+
 //! Signal used for retrieving the supported orientations. \t BitwiseAndEventCombiner is used so that any connection can forbid a certain orientation.
-typedef	signals::Signal<uint32_t (), signals::CollectorBitwiseAnd<uint32_t>>		EventSignalSupportedOrientations;	
+typedef	signals::Signal<uint32_t (), signals::CollectorBitwiseAnd<uint32_t>>		EventSignalSupportedOrientations;
+typedef	signals::Signal<void( double, TransitionEasing )>							EventSignalWillRotate;
 #endif
 
 typedef	signals::Signal<bool (), signals::CollectorBooleanAnd>						EventSignalShouldQuit;

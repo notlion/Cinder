@@ -461,14 +461,22 @@ using namespace cinder::app;
 }
 #endif
 
-- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation duration:(NSTimeInterval)duration
-{
-	mAppImpl->mApp->emitWillRotate();
+static TransitionEasing convertAnimationCurveToTransitionEasing(UIViewAnimationCurve animationCurve) {
+	switch (animationCurve) {
+		case UIViewAnimationCurveEaseInOut: return TransitionEasing::EaseInOut;
+		case UIViewAnimationCurveEaseIn: return TransitionEasing::EaseIn;
+		case UIViewAnimationCurveEaseOut: return TransitionEasing::EaseOut;
+		case UIViewAnimationCurveLinear: return TransitionEasing::Linear;
+	}
 }
 
-- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 {
-	mAppImpl->mApp->emitDidRotate();
+	[coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+		mAppImpl->mApp->emitWillRotate(context.transitionDuration, convertAnimationCurveToTransitionEasing(context.completionCurve));
+	} completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+		mAppImpl->mApp->emitDidRotate();
+	}];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
