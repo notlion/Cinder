@@ -70,10 +70,10 @@ class CI_API AppMac : public AppBase {
   protected:
 	void	launch() override;
 
-	AppImplMac*	mImpl;
-
   private:
 	static void		initialize( Settings *settings, const RendererRef &defaultRenderer, const char *title, int argc, char * const argv[] );
+
+	AppImplMac*	mImpl;
 };
 
 template<typename AppT>
