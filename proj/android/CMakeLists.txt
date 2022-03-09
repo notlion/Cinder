@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
 # Suppress compiler checks. Why? CMake seems to be inconsistent
@@ -533,7 +533,7 @@ set( CINDER_C_SRC_FILES
 )
 
 set( CINDER_CXX_SRC_FILES
-    ${CINDER_SRC_DIR}/cinder/linux/gl_es_load.cpp
+    ${CINDER_SRC_DIR}/glad/glad_es.c
 
     ${CINDER_SRC_DIR}/cinder/android/libc_helper.cpp
     ${CINDER_SRC_DIR}/cinder/android/AndroidDevLog.cpp

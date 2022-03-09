@@ -106,10 +106,10 @@ class ImageTargetTexture;
 template<typename T>
 class ImageTargetGlTexture : public ImageTarget {
   public:
-	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha );
+	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder channelOrder, bool isGray, bool hasAlpha );
 #if ! defined( CINDER_GL_ES )
 	// receives a pointer to an intermediate data store, presumably a mapped PBO
-	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *data );
+	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder channelOrder, bool isGray, bool hasAlpha, void *data );
 #endif
 
 	virtual bool	hasAlpha() const { return mHasAlpha; }
@@ -118,7 +118,7 @@ class ImageTargetGlTexture : public ImageTarget {
 	void*			getData() const { return mDataBaseAddress; }
 
   private:
-	ImageTargetGlTexture( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *intermediateData );
+	ImageTargetGlTexture( const Texture *texture, ImageIo::ChannelOrder channelOrder, bool isGray, bool hasAlpha, void *intermediateData );
 
 	const Texture		*mTexture;
 	bool				mHasAlpha;
@@ -188,6 +188,11 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat, GLint
 	else {
 		mInternalFormat = format.mInternalFormat;
 	}
+
+#if ! defined( CINDER_GL_ES )
+	if( format.mPerGpuStorageSpecifiedNV )
+		glTexParameteri( mTarget, GL_PER_GPU_STORAGE_NV, (GLint)format.mPerGpuStorageEnabledNV );
+#endif
 
 	//if( ( format.mDataType == -1 ) && ( defaultDataType > 0 ) )
 	//	format.mDataType = defaultDataType;
@@ -760,6 +765,10 @@ TextureBase::Format::Format()
 	mSwizzleMask[0] = GL_RED; mSwizzleMask[1] = GL_GREEN; mSwizzleMask[2] = GL_BLUE; mSwizzleMask[3] = GL_ALPHA;
 	mCompareMode = -1;
 	mCompareFunc = -1;
+#if ! defined( CINDER_GL_ES )
+	mPerGpuStorageSpecifiedNV = false;
+	mPerGpuStorageEnabledNV = false;
+#endif
 }
 
 void TextureBase::Format::setSwizzleMask( GLint r, GLint g, GLint b, GLint a )
@@ -1629,12 +1638,12 @@ class ImageSourceTexture : public ImageSource {
 			case GL_DEPTH_COMPONENT16: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT16 ); format = GL_DEPTH_COMPONENT; break;
 			case GL_DEPTH_COMPONENT24: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_DEPTH_COMPONENT; break;
 			case GL_DEPTH_COMPONENT32: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_DEPTH_COMPONENT; break;
-			case GL_RGBA32F_ARB: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGBA; break;
-			case GL_RGB32F_ARB: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
+			case GL_RGBA32F: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGBA; break;
+			case GL_RGB32F: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
 			case GL_R32F: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_RED; break;
 			case GL_RG32F: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_RG; break;
-			case GL_RGBA16F_ARB: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT16 ); format = GL_RGBA; break;
-			case GL_RGB16F_ARB: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT16 ); format = GL_RGB; break;
+			case GL_RGBA16F: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT16 ); format = GL_RGBA; break;
+			case GL_RGB16F: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT16 ); format = GL_RGB; break;
 			case GL_R16F: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT16 ); format = GL_RED; break;
 			case GL_RG16F: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT16 ); format = GL_RG; break;
 			default:
@@ -1667,8 +1676,8 @@ class ImageSourceTexture : public ImageSource {
 			dataSize = 4;
 		}
 
-		mRowBytes = mWidth * ImageIo::channelOrderNumChannels( mChannelOrder ) * dataSize;
-		mData = unique_ptr<uint8_t[]>( new uint8_t[mRowBytes * mHeight] );
+		mRowBytes = texture.getActualWidth() * ImageIo::channelOrderNumChannels( mChannelOrder ) * dataSize;
+		mData = unique_ptr<uint8_t[]>( new uint8_t[mRowBytes * texture.getActualHeight()] );
 
 #if defined( CINDER_GL_ES )
 		// This line is not too awesome, however we need a TextureRef, not a Texture, for an FBO attachment. So this creates a shared_ptr with a no-op deleter
@@ -1705,6 +1714,14 @@ class ImageSourceTexture : public ImageSource {
 	std::unique_ptr<uint8_t[]>	mData;
 	int32_t						mRowBytes;
 };
+
+void Texture2d::regenerateMipmap()
+{
+	if( mMipmapping ) {
+		ScopedTextureBind tbs( mTarget, mTextureId );
+		glGenerateMipmap( mTarget );
+	}
+}
 
 ImageSourceRef Texture2d::createSource()
 {
@@ -2105,6 +2122,14 @@ void TextureCubeMap::replace( const TextureData &textureData )
 #endif
 }
 
+void TextureCubeMap::regenerateMipmap()
+{
+	if( mMipmapping ) {
+		ScopedTextureBind tbs( mTarget, mTextureId );
+		glGenerateMipmap( mTarget );
+	}
+}
+
 void TextureCubeMap::printDims( std::ostream &os ) const
 {
 	os << mWidth << " x " << mHeight;
@@ -2113,7 +2138,7 @@ void TextureCubeMap::printDims( std::ostream &os ) const
 /////////////////////////////////////////////////////////////////////////////////
 // ImageTargetGlTexture
 template<typename T>
-shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha )
+shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Texture *texture, ImageIo::ChannelOrder channelOrder, bool isGray, bool hasAlpha )
 {
 	return shared_ptr<ImageTargetGlTexture<T>>( new ImageTargetGlTexture<T>( texture, channelOrder, isGray, hasAlpha, nullptr ) );
 }
@@ -2121,14 +2146,14 @@ shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Textu
 #if ! defined( CINDER_GL_ES )
 // create method receives an existing pointer which presumably is a mapped PBO
 template<typename T>
-shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *intermediateDataStore )
+shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Texture *texture, ImageIo::ChannelOrder channelOrder, bool isGray, bool hasAlpha, void *intermediateDataStore )
 {
 	return shared_ptr<ImageTargetGlTexture<T>>( new ImageTargetGlTexture<T>( texture, channelOrder, isGray, hasAlpha, intermediateDataStore ) );
 }
 #endif
 
 template<typename T>
-ImageTargetGlTexture<T>::ImageTargetGlTexture( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *intermediateDataStore )
+ImageTargetGlTexture<T>::ImageTargetGlTexture( const Texture *texture, ImageIo::ChannelOrder channelOrder, bool isGray, bool hasAlpha, void *intermediateDataStore )
 	: ImageTarget(), mTexture( texture ), mHasAlpha( hasAlpha )
 {
 	if( isGray ) {

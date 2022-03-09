@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
 project( UnitTests )
@@ -19,6 +19,7 @@ set( SOURCES
 	${UNIT_DIR}/src/TestMain.cpp
 	${UNIT_DIR}/src/UnicodeTest.cpp
 	${UNIT_DIR}/src/Utilities.cpp
+	${UNIT_DIR}/src/MediaTime.cpp
 	${UNIT_DIR}/src/Path2dTest.cpp
 	${UNIT_DIR}/src/PolyLineTest.cpp
 	${UNIT_DIR}/src/audio/BufferUnit.cpp

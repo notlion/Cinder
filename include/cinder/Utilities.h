@@ -26,6 +26,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 #include <map>
 
 #include "cinder/Cinder.h"
@@ -42,6 +43,9 @@ CI_API fs::path expandPath( const fs::path &path );
 CI_API fs::path getHomeDirectory();
 //! Returns a path to the user's documents directory.
 CI_API fs::path getDocumentsDirectory();
+
+//! Removes all files beyond maxFileCount.
+CI_API void limitDirectoryFileCount( const fs::path& directoryPath, size_t maxFileCount, std::function<bool(const fs::path&, const fs::path&)> sortFn = []( const fs::path& p1, const fs::path& p2 ) -> bool { return fs::last_write_time( p1 ) > fs::last_write_time( p2 ); } );
 
 //! Launches a path in a web browser
 CI_API void launchWebBrowser( const Url &url );
@@ -91,7 +95,7 @@ CI_API bool asciiCaseEqual( const char *a, const char *b );
 //! returns equivalent of strcmp() using ASCII case-insensitive comparison
 CI_API int asciiCaseCmp( const char *a, const char *b );
 
-//! returns a copy of \a str with all whitespace (as defined by std::isspace()) removed from beginning and end
+//! returns a copy of \a str with all whitespace (as defined by std::isspace()) removed from beginning and end. Unicode aware.
 CI_API std::string trim( const std::string &str );
 
 //! Returns a stack trace (aka backtrace) where \c stackTrace()[0] == caller, \c stackTrace()[1] == caller's parent, etc

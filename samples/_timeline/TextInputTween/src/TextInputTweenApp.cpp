@@ -25,7 +25,7 @@ using namespace std;
 
 class TextInputTweenApp : public App {
   public:
-	void prepareSettings( Settings *settings );
+	static void prepareSettings( Settings *settings );
 	void setup();
 	void keyDown( KeyEvent event );
 	void update();
@@ -49,6 +49,9 @@ class TextInputTweenApp : public App {
 
 void TextInputTweenApp::prepareSettings( Settings *settings )
 {
+#if defined( CINDER_MAC )
+    	settings->setHighDensityDisplayEnabled(true);
+#endif
 	settings->setWindowSize( 700, 700 );
 	settings->setFrameRate( 60 );
 }
@@ -154,11 +157,11 @@ void TextInputTweenApp::draw()
 	for( auto &c : mCharacters )
 		c.draw();
 
-	for( auto &c : mCharacters )
+	for( auto &c : mDyingCharacters )
 		c.draw();
 
 	if( ( ! mDyingCharacters.empty() ) && mDyingCharacters.front().isDead() )
 		mDyingCharacters.pop_front();
 }
 
-CINDER_APP( TextInputTweenApp, RendererGl )
+CINDER_APP( TextInputTweenApp, RendererGl, &TextInputTweenApp::prepareSettings )

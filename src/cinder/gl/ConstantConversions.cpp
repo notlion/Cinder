@@ -203,7 +203,7 @@ std::string	constantToString( GLenum constant )
 
 #if defined( CINDER_GL_HAS_REQUIRED_INTERNALFORMAT )
 	#if defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
-		sSymbols[GL_RGB10] = "GL_RGB10";
+		sSymbols[GL_RGB10_EXT] = "GL_RGB10_EXT";
 	#endif
 		sSymbols[GL_RGB10_A2] = "GL_RGB10_A2";
 
@@ -235,7 +235,7 @@ std::string	constantToString( GLenum constant )
 	#endif
 
 		sSymbols[GL_RGBA8_SNORM] = "GL_RGBA8_SNORM";
-  #if ! ( defined( CINDER_COCOA_TOUCH ) || defined( CINDER_GL_ANGLE ) )
+  #if ! ( defined( CINDER_COCOA_TOUCH ) || defined( CINDER_GL_ANGLE ) || defined( CINDER_GL_ES_3_RPI ) )
 		// iOS and ANGLE doesn't have these
 		sSymbols[GL_R16_SNORM] = "GL_R16_SNORM";
 		sSymbols[GL_RG16_SNORM] = "GL_RG16_SNORM";
@@ -272,6 +272,12 @@ std::string	constantToString( GLenum constant )
 		sSymbols[GL_COLOR_ATTACHMENT8] = "GL_COLOR_ATTACHMENT8";
 		sSymbols[GL_COLOR_ATTACHMENT9] = "GL_COLOR_ATTACHMENT9";
 #endif // ! defined( CINDER_GL_ES_2 )
+
+#if defined( CINDER_GL_HAS_COMPUTE_SHADER )
+		sSymbols[GL_IMAGE_1D] = "GL_IMAGE_1D"; 
+		sSymbols[GL_IMAGE_2D] = "GL_IMAGE_2D"; 
+		sSymbols[GL_IMAGE_3D] = "GL_IMAGE_3D"; 
+#endif
 		
 		initialized = true;
 	}
@@ -601,6 +607,13 @@ uint8_t typeToBytes( GLenum type )
 		case GL_FLOAT_MAT2:			return sizeof(mat2); break;
 		case GL_FLOAT_MAT3:			return sizeof(mat3); break;
 		case GL_FLOAT_MAT4:			return sizeof(mat4); break;
+
+#if defined( CINDER_GL_HAS_COMPUTE_SHADER )
+		case GL_IMAGE_1D:			return sizeof(int); break;
+		case GL_IMAGE_2D:			return sizeof(int); break;
+		case GL_IMAGE_3D:			return sizeof(int); break;
+#endif
+
 		default:
 			CI_LOG_E("Unknown gl type constant " << constantToString( type ));
 			return 0;

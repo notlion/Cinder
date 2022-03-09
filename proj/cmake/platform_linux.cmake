@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
@@ -57,32 +57,22 @@ list( APPEND SRC_SET_CINDER_LINUX ${CINDER_SRC_DIR}/cinder/UrlImplCurl.cpp )
 if( NOT CINDER_HEADLESS ) # Desktop ogl, es2, es3, RPi
 	if( CINDER_GL_ES )
 		list( APPEND SRC_SET_CINDER_LINUX
-			${CINDER_SRC_DIR}/cinder/linux/gl_es_load.cpp
+			${CINDER_SRC_DIR}/glad/glad_es.c
 		)
 	else()
 		list( APPEND SRC_SET_CINDER_LINUX
-			${CINDER_SRC_DIR}/glload/glx_load.c
-			${CINDER_SRC_DIR}/glload/glx_load_cpp.cpp
+			${CINDER_SRC_DIR}/glad/glad_glx.c
 		)
 	endif()
 
-	if( NOT CINDER_GL_ES_2_RPI ) # GLFW
-		list( APPEND SRC_SET_CINDER_LINUX
-			${SRC_SET_GLFW}
-		)
-		list( APPEND SRC_SET_CINDER_APP_LINUX
-			${CINDER_SRC_DIR}/cinder/app/linux/AppImplLinuxGlfw.cpp
-			${CINDER_SRC_DIR}/cinder/app/linux/RendererGlLinuxGlfw.cpp
-			${CINDER_SRC_DIR}/cinder/app/linux/WindowImplLinuxGlfw.cpp
-		)
-	else() # RPi
-		list( APPEND SRC_SET_CINDER_LINUX
-			${CINDER_SRC_DIR}/cinder/linux/gl_es_load.cpp
-			${CINDER_SRC_DIR}/cinder/app/linux/AppImplLinuxRpi.cpp
-			${CINDER_SRC_DIR}/cinder/app/linux/RendererGlLinuxRpi.cpp
-			${CINDER_SRC_DIR}/cinder/app/linux/WindowImplLinuxRpi.cpp
-		)
-	endif()
+	list( APPEND SRC_SET_CINDER_LINUX
+		${SRC_SET_GLFW}
+	)
+	list( APPEND SRC_SET_CINDER_APP_LINUX
+		${CINDER_SRC_DIR}/cinder/app/linux/AppImplLinuxGlfw.cpp
+		${CINDER_SRC_DIR}/cinder/app/linux/RendererGlLinuxGlfw.cpp
+		${CINDER_SRC_DIR}/cinder/app/linux/WindowImplLinuxGlfw.cpp
+	)
 else() # Headless egl, osmesa
 	list( APPEND SRC_SET_CINDER_LINUX
 		${CINDER_SRC_DIR}/cinder/app/linux/AppImplLinuxHeadless.cpp
@@ -91,7 +81,7 @@ else() # Headless egl, osmesa
 	)
 	if( CINDER_GL_ES )
 		list( APPEND SRC_SET_CINDER_LINUX
-			${CINDER_SRC_DIR}/cinder/linux/gl_es_load.cpp
+			${CINDER_SRC_DIR}/glad/glad_es.c
 		)
 	endif()
 endif()
@@ -121,27 +111,14 @@ if( CINDER_GL_CORE )
 		list( APPEND CINDER_LIBS_DEPENDS ${X11_LIBRARIES} Xcursor Xinerama Xrandr Xi )
 		list( APPEND CINDER_INCLUDE_SYSTEM_PRIVATE ${X11_INCLUDE_DIR} )
 		find_package( OSMesa REQUIRED )
-		list( APPEND CINDER_LIBS_DEPENDS ${OSMESA_LIBRARIES} ${OSMESA_GL_LIBRARIES} )
-		list( APPEND CINDER_INCLUDE_SYSTEM_PRIVATE ${OSMESA_INCLUDE_DIR} )
+		list( APPEND CINDER_LIBS_DEPENDS ${OSMesa_LIBRARIES} )
+		list( APPEND CINDER_INCLUDE_SYSTEM_PRIVATE ${OSMesa_INCLUDE_DIRS} )
 	endif()
 elseif( CINDER_GL_ES )
-	if( NOT CINDER_GL_ES_2_RPI )
-		find_package( X11 REQUIRED )
-		list( APPEND CINDER_LIBS_DEPENDS ${X11_LIBRARIES} Xcursor Xinerama Xrandr Xi )
-		list( APPEND CINDER_INCLUDE_SYSTEM_PRIVATE ${X11_INCLUDE_DIR} )
-		list( APPEND CINDER_LIBS_DEPENDS EGL GLESv2 )
-	else()
-		list( APPEND CINDER_INCLUDE_SYSTEM_PRIVATE
-			/opt/vc/include
-			/opt/vc/include/interface/vmcs_host/linux/
-			/opt/vc/include/interface/vcos/pthreads
-		)
-		list( APPEND CINDER_LIBS_DEPENDS
-			/opt/vc/lib/libEGL.so
-			/opt/vc/lib/libGLESv2.so
-			/opt/vc/lib/libbcm_host.so
-		)
-	endif()
+	find_package( X11 REQUIRED )
+	list( APPEND CINDER_LIBS_DEPENDS ${X11_LIBRARIES} Xcursor Xinerama Xrandr Xi )
+	list( APPEND CINDER_INCLUDE_SYSTEM_PRIVATE ${X11_INCLUDE_DIR} )
+	list( APPEND CINDER_LIBS_DEPENDS EGL GLESv2 )
 endif()
 
 # Common libs for Linux.
@@ -198,19 +175,6 @@ if( NOT CINDER_DISABLE_VIDEO )
 	endif()
 endif()
 
-# Boost
-if( CINDER_BOOST_USE_SYSTEM )
-	find_package( Boost 1.54 REQUIRED COMPONENTS system filesystem )
-	list( APPEND CINDER_LIBS_DEPENDS ${Boost_LIBRARIES} )
-	list( APPEND CINDER_INCLUDE_SYSTEM_PRIVATE ${Boost_INCLUDE_DIRS} )
-else()
-	set( LINUX_LIB_DIRECTORY "${CINDER_PATH}/lib/linux/${CINDER_ARCH}/" )
-	list( APPEND CINDER_LIBS_DEPENDS
-		${LINUX_LIB_DIRECTORY}/libboost_system.a
-		${LINUX_LIB_DIRECTORY}/libboost_filesystem.a
-	)
-endif()
-
 # Defaults... dl and pthread
 list( APPEND CINDER_LIBS_DEPENDS dl pthread )
 
@@ -231,18 +195,17 @@ if( CINDER_GL_CORE )
 	list( APPEND CINDER_DEFINES "-DCINDER_GL_CORE" )
 elseif( CINDER_GL_ES )
 	list( APPEND CINDER_DEFINES "-DCINDER_GL_ES" )
-	if( NOT CINDER_GL_ES_2_RPI )
-		if( CINDER_GL_ES_2 )
-			list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_2" )
-		elseif( CINDER_GL_ES_3 )
-			list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_3" )
-		elseif( CINDER_GL_ES_3_1 )
-			list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_3_1" )
-		elseif( CINDER_GL_ES_3_2 )
-			list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_3_2" )
-		endif()
-	else() # rpi
-		list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_2" "-DCINDER_LINUX_EGL_ONLY" "-DCINDER_GL_ES_2_RPI" )
+	
+	if( CINDER_GL_ES_2 )
+		list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_2" )
+	elseif( CINDER_GL_ES_3 )
+		list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_3" )
+	elseif( CINDER_GL_ES_3_1 )
+		list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_3_1" )
+	elseif( CINDER_GL_ES_3_2 )
+		list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_3_2" )
+	elseif( CINDER_GL_ES_3_RPI )
+		list( APPEND CINDER_DEFINES "-DCINDER_GL_ES_3" "-DCINDER_GL_ES_3_RPI" )
 	endif()
 endif()
 
@@ -253,19 +216,8 @@ if( CINDER_HEADLESS )
 	elseif( CINDER_HEADLESS_GL_OSMESA )
 		list( APPEND CINDER_DEFINES "-DCINDER_HEADLESS -DCINDER_HEADLESS_GL_OSMESA" )
 	endif()
-elseif( NOT CINDER_GL_ES_2_RPI ) # If not headless and not on the RPi we need X.
+else() # If not headless we need X.
 	list( APPEND GLFW_FLAGS "-D_GLFW_X11" )
 endif()
 
 list( APPEND CINDER_DEFINES "-D_UNIX" ${GLFW_FLAGS}  )
-
-if( NOT CINDER_BOOST_USE_SYSTEM )
-	execute_process( COMMAND gcc -dumpversion OUTPUT_VARIABLE GCC_VERSION )
-	if( GCC_VERSION VERSION_GREATER 5.1 OR GCC_VERSION VERSION_EQUAL 5.1 )
-		message( STATUS "Version >= 5.1 -- Disabling _GLIBCXX_USE_CXX11_ABI." )
-		list( APPEND CINDER_DEFINES "-D_GLIBCXX_USE_CXX11_ABI=0" )
-		if( CMAKE_COMPILER_IS_GNUXX )
-			set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wabi-tag )
-		endif()
-	endif()
-endif()

@@ -34,6 +34,7 @@
 #include <vector>
 #include <fstream>
 #include <cctype>
+#include <algorithm>
 
 using std::vector;
 using std::string;
@@ -54,6 +55,27 @@ fs::path getHomeDirectory()
 fs::path getDocumentsDirectory()
 {
 	return app::Platform::get()->getDocumentsDirectory();
+}
+
+void limitDirectoryFileCount( const fs::path& directoryPath, size_t maxFileCount, std::function<bool( const fs::path&, const fs::path& )> sortFn )
+{
+	if( ! fs::is_directory( directoryPath ) )
+		return;
+
+	std::vector<fs::path> directoryFiles;
+	for( const auto& filepath : fs::directory_iterator( directoryPath ) ) {
+		if( fs::is_regular_file( filepath ) ) {
+			directoryFiles.push_back( filepath );
+		}
+	}
+
+	if( directoryFiles.size() > maxFileCount ) {
+		std::sort( directoryFiles.begin(), directoryFiles.end(), sortFn );
+
+		for( size_t i=maxFileCount; i < directoryFiles.size(); i++ ) {
+			fs::remove( directoryFiles.at( i ) );
+		}
+	}
 }
 
 void launchWebBrowser( const Url &url )
@@ -149,12 +171,11 @@ int asciiCaseCmp( const char *a, const char *b )
 	return ((int)std::toupper(*a)) - ((int)std::toupper(*b));
 }
 
-
 std::string trim( const std::string &str )
 {
-	auto wsFront = std::find_if_not( str.begin(), str.end(), [](int c){ return std::isspace(c); } );
-	auto wsBack = std::find_if_not( str.rbegin(), str.rend(),[](int c){ return std::isspace(c); } ).base();
-	return wsBack <= wsFront ? std::string() : std::string( wsFront, wsBack );
+	size_t wsFront = str.find_first_not_of( " \f\n\r\t\v" );
+	size_t wsBack = str.find_last_not_of( " \f\n\r\t\v" );
+	return wsBack <= wsFront ? std::string() : str.substr( wsFront, wsBack - wsFront + 1 );
 }
 
 void sleep( float milliseconds )

@@ -6,6 +6,7 @@ option( BUILD_SHARED_LIBS "Build Cinder as a shared library. " OFF )
 option( CINDER_DISABLE_AUDIO "Build Cinder without audio support. " OFF )
 option( CINDER_DISABLE_VIDEO "Build Cinder without video support. " OFF )
 option( CINDER_DISABLE_ANTTWEAKBAR "Build Cinder without AntTweakBar support. " OFF )
+option( CINDER_DISABLE_IMGUI "Build Cinder without imgui support. " OFF )
 
 include( ${CMAKE_CURRENT_LIST_DIR}/utilities.cmake )
 
@@ -79,9 +80,9 @@ if( CINDER_TARGET_GL )
 	elseif( "es32" STREQUAL "${CINDER_TARGET_GL_LOWER}" )
 		set( CINDER_GL_ES TRUE )
 		set( CINDER_GL_ES_3_2 TRUE )
-	elseif( "es2-rpi" STREQUAL "${CINDER_TARGET_GL_LOWER}" )
+	elseif( "es3-rpi" STREQUAL "${CINDER_TARGET_GL_LOWER}" )
 		set( CINDER_GL_ES TRUE )
-		set( CINDER_GL_ES_2_RPI TRUE )
+		set( CINDER_GL_ES_3_RPI TRUE )
 	else()
 		message( WARNING "Unexpected value for CINDER_TARGET_GL: " ${CINDER_TARGET_GL_LOWER} ". Default to Core Profile." )
 		set( CINDER_GL_CORE TRUE )
@@ -134,4 +135,4 @@ endif()
 
 # CINDER_LIB_DIRECTORY is the platform-specific, relative path that will be used to define
 # CMAKE_ARCHIVE_OUTPUT_DIRECTORY for libcinder and also specifies where user apps will locate the cinder package
-set( CINDER_LIB_DIRECTORY "lib/${CINDER_TARGET_SUBFOLDER}/${CMAKE_BUILD_TYPE}/" )
+set( CINDER_LIB_DIRECTORY "lib/${CINDER_TARGET_SUBFOLDER}/${CMAKE_BUILD_TYPE}" )

@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 set( CINDER_PLATFORM "Cocoa" )
 
@@ -86,11 +86,6 @@ list( APPEND CINDER_SRC_FILES
 	${SRC_SET_AUDIO_COCOA}
 )
 
-list( APPEND CINDER_LIBS_DEPENDS
-    ${CINDER_PATH}/lib/${CINDER_TARGET_SUBFOLDER}/libboost_system.a
-    ${CINDER_PATH}/lib/${CINDER_TARGET_SUBFOLDER}/libboost_filesystem.a
-)
-
 # link in system frameworks
 find_library( COCOA_FRAMEWORK Cocoa REQUIRED )
 find_library( OPENGL_FRAMEWORK OpenGL REQUIRED )
@@ -146,7 +141,6 @@ source_group( "cinder\\app\\cocoa"      FILES ${SRC_SET_APP_COCOA} )
 source_group( "cinder\\audio\\cocoa"    FILES ${SRC_SET_AUDIO_COCOA} )
 
 set( MACOS_SUBFOLDER            "${CINDER_PATH}/lib/${CINDER_TARGET_SUBFOLDER}" )
-set( CINDER_STATIC_LIBS_DEPENDS "${MACOS_SUBFOLDER}/libboost_filesystem.a ${MACOS_SUBFOLDER}/libboost_system.a" )
 
 if( NOT ( "Xcode" STREQUAL "${CMAKE_GENERATOR}" ) )
 	if(NOT CMAKE_LIBTOOL)
@@ -158,7 +152,7 @@ if( NOT ( "Xcode" STREQUAL "${CMAKE_GENERATOR}" ) )
 		message(STATUS "Found libtool - ${CMAKE_LIBTOOL}")
 		get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 		foreach(lang ${languages})
-			set(CMAKE_${lang}_CREATE_STATIC_LIBRARY "${CMAKE_LIBTOOL} -static -arch_only x86_64 -o <TARGET> <LINK_FLAGS> <OBJECTS> ")
+			set(CMAKE_${lang}_CREATE_STATIC_LIBRARY "${CMAKE_LIBTOOL} -static -o <TARGET> <LINK_FLAGS> <OBJECTS> ")
 		endforeach()
 	endif()
 endif()
