@@ -26,8 +26,6 @@
 #include "cinder/Unicode.h"
 #include "cinder/msw/StackWalker.h"
 #include "cinder/msw/CinderMsw.h"
-#include "cinder/app/msw/AppImplMsw.h" // this is needed for file dialog methods, but it doesn't necessarily require an App instance
-#include "cinder/app/AppBase.h"
 #include "cinder/ImageSourceFileWic.h"
 #include "cinder/ImageTargetFileWic.h"
 #include "cinder/ImageSourceFileRadiance.h"
@@ -52,6 +50,22 @@ namespace cinder { namespace app {
 PlatformMsw::PlatformMsw()
 	: mDirectConsoleToCout( false ), mDisplaysInitialized( false )
 {
+	// MSW sends it arguments as wide strings, so convert them to utf8 and store those in settings
+	LPWSTR* szArglist;
+	int nArgs;
+
+	std::vector<std::string> cmdLineArgs;
+	szArglist = ::CommandLineToArgvW(::GetCommandLineW(), &nArgs);
+	if (szArglist && nArgs) {
+		for (int i = 0; i < nArgs; ++i)
+			cmdLineArgs.push_back(toUtf8((char16_t*)szArglist[i]));
+	}
+
+	// Free memory allocated for CommandLineToArgvW arguments.
+	::LocalFree( szArglist );
+
+	setCommandLineArgs( cmdLineArgs );
+
 	ImageSourceFileWic::registerSelf();
 	ImageTargetFileWic::registerSelf();
 	ImageSourceFileRadiance::registerSelf();
@@ -91,17 +105,186 @@ DataSourceRef PlatformMsw::loadResource( const fs::path &resourcePath, int mswID
 
 fs::path PlatformMsw::getOpenFilePath( const fs::path &initialPath, const std::vector<std::string> &extensions )
 {
-	return AppImplMsw::getOpenFilePath( initialPath, extensions );
+	OPENFILENAMEW ofn;       // common dialog box structure
+	wchar_t szFile[MAX_PATH];       // buffer for file name
+	wchar_t extensionStr[10000];
+	wchar_t initialPathStr[MAX_PATH];
+
+	// Initialize OPENFILENAME
+	::ZeroMemory( &ofn, sizeof(ofn) );
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = mHwnd;
+	ofn.lpstrFile = szFile;
+
+	// Set lpstrFile[0] to '\0' so that GetOpenFileName does not
+	// use the contents of szFile to initialize itself.
+	//
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof( szFile );
+	if( extensions.empty() ) {
+		ofn.lpstrFilter = L"All\0*.*\0";
+	}
+	else {
+		size_t offset = 0;
+
+		wcscpy( extensionStr, L"Supported Types" );
+		offset += wcslen( extensionStr ) + 1;
+		for( vector<string>::const_iterator strIt = extensions.begin(); strIt != extensions.end(); ++strIt ) {
+			wcscpy( extensionStr + offset, L"*." );
+			offset += 2;
+			wcscpy( extensionStr + offset, msw::toWideString( *strIt ).c_str() );
+			offset += strIt->length();
+			// append a semicolon to all but the last extensions
+			if( strIt + 1 != extensions.end() ) {
+				extensionStr[offset] = L';';
+				offset += 1;
+			}
+			else {
+				extensionStr[offset] = L'\0';
+				offset += 1;
+			}
+		}
+
+		extensionStr[offset] = 0;
+		ofn.lpstrFilter = extensionStr;
+	}
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
+	if( initialPath.empty() ) {
+		ofn.lpstrInitialDir = NULL;
+	}
+	else if( fs::is_directory( initialPath ) ) {
+		wcscpy( initialPathStr, initialPath.wstring().c_str() );
+		ofn.lpstrInitialDir = initialPathStr;
+	}
+	else {
+		wcscpy( initialPathStr, initialPath.parent_path().wstring().c_str() );
+		ofn.lpstrInitialDir = initialPathStr;
+		wcscpy( szFile, initialPath.filename().wstring().c_str() );
+	}
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	// Display the Open dialog box.
+	if( ::GetOpenFileNameW( &ofn ) == TRUE ) {
+		return fs::path( ofn.lpstrFile );
+	}
+	else
+		return fs::path();
 }
+
+namespace {
+
+	// see http://support.microsoft.com/kb/179378 "How To Browse for Folders from the Current Directory"
+	INT CALLBACK getFolderPathBrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM /*lp*/, LPARAM pData )
+	{
+		switch( uMsg ) {
+			case BFFM_INITIALIZED:
+				// WParam is TRUE since you are passing a path.
+				// It would be FALSE if you were passing a pidl.
+				// pData is a pointer to the wide string containing our initial path back at the original call site
+				::SendMessage( hwnd, BFFM_SETSELECTION, TRUE, pData );
+				break;
+		}
+		return 0;
+	}
+
+} // anonymous namespace
 
 fs::path PlatformMsw::getFolderPath( const fs::path &initialPath )
 {
-	return AppImplMsw::getFolderPath( initialPath );
+	string result;
+
+	::BROWSEINFO bi = { 0 };
+	bi.lParam = reinterpret_cast<LPARAM>( initialPath.wstring().c_str() );
+	bi.lpfn = getFolderPathBrowseCallbackProc;
+	bi.lpszTitle = L"Pick a Directory";
+	::LPITEMIDLIST pidl = ::SHBrowseForFolder( &bi );
+	if( pidl ) {
+		// get the name of the folder
+		TCHAR path[MAX_PATH];
+		if( ::SHGetPathFromIDList( pidl, path ) ) {
+			result = msw::toUtf8String( path );
+		}
+
+		// free memory used
+		::IMalloc * imalloc = 0;
+		if( SUCCEEDED( ::SHGetMalloc( &imalloc ) ) ) {
+			imalloc->Free( pidl );
+			imalloc->Release();
+		}
+	}
+
+	return result;
 }
 
 fs::path PlatformMsw::getSaveFilePath( const fs::path &initialPath, const std::vector<std::string> &extensions )
 {
-	return AppImplMsw::getSaveFilePath( initialPath, extensions );
+	OPENFILENAMEW ofn;       // common dialog box structure
+	wchar_t szFile[MAX_PATH];       // buffer for file name
+	wchar_t initialPathStr[MAX_PATH];
+	wchar_t extensionStr[10000];
+
+	// Initialize OPENFILENAME
+	ZeroMemory( &ofn, sizeof(ofn) );
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = mHwnd;
+	ofn.lpstrFile = szFile;
+
+	// Set lpstrFile[0] to '\0' so that GetSaveFileName does not
+	// use the contents of szFile to initialize itself.
+	//
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof( szFile );
+	if( extensions.empty() ) {
+		ofn.lpstrFilter = L"All\0*.*\0";
+	}
+	else {
+		size_t offset = 0;
+
+		wcscpy( extensionStr, L"Supported Types" );
+		offset += wcslen( extensionStr ) + 1;
+		for( vector<string>::const_iterator strIt = extensions.begin(); strIt != extensions.end(); ++strIt ) {
+			wcscpy( extensionStr + offset, L"*." );
+			offset += 2;
+			wcscpy( extensionStr + offset, msw::toWideString( strIt->c_str() ).c_str() );
+			offset += strIt->length();
+			// append a semicolon to all but the last extensions
+			if( strIt + 1 != extensions.end() ) {
+				extensionStr[offset] = L';';
+				offset += 1;
+			}
+			else {
+				extensionStr[offset] = 0;
+				offset += 1;
+			}
+		}
+
+		extensionStr[offset] = 0;
+		ofn.lpstrFilter = extensionStr;
+	}
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
+	if( initialPath.empty() ) {
+		ofn.lpstrInitialDir = NULL;
+	}
+	else if( fs::is_directory( initialPath ) ) {
+		wcscpy( initialPathStr, initialPath.wstring().c_str() );
+		ofn.lpstrInitialDir = initialPathStr;
+	}
+	else {
+		wcscpy( initialPathStr, initialPath.parent_path().wstring().c_str() );
+		ofn.lpstrInitialDir = initialPathStr;
+		wcscpy( szFile, initialPath.filename().wstring().c_str() );
+	}
+	ofn.Flags = OFN_SHOWHELP | OFN_OVERWRITEPROMPT;
+
+	// Display the Open dialog box.
+	if( ::GetSaveFileName( &ofn ) == TRUE )
+		return fs::path( ofn.lpstrFile );
+	else
+		return fs::path();
 }
 
 std::ostream& PlatformMsw::console()
@@ -417,16 +600,12 @@ const std::vector<DisplayRef>& app::PlatformMsw::getDisplays()
 	return mDisplays;
 }
 
-void app::PlatformMsw::refreshDisplays()
+void app::PlatformMsw::refreshDisplays( vector<DisplayRef> *connectedDisplays, vector<DisplayRef> *changedDisplays, vector<DisplayRef> *disconnectedDisplays )
 {
-	// We need to do this with all this indirection so that getDisplays() is valid once we're emitting signals
+	// We need to do this with all this indirection so that getDisplays() is valid once we're emitting signals (from AppImplMswBasic::refreshDisplays())
 	vector<DisplayRef> newDisplays;
 
 	::EnumDisplayMonitors( NULL, NULL, DisplayMsw::enumMonitorProc, (LPARAM)&newDisplays );
-
-	vector<DisplayRef> connectedDisplays; // displays we need to issue a connected signal to
-	vector<DisplayRef> changedDisplays; // displays we need to issue a changed signal to
-	vector<DisplayRef> disconnectedDisplays; // displays we need to issue a disconnected signal to
 
 	for( auto &display : mDisplays )
 		reinterpret_cast<DisplayMsw*>( display.get() )->mVisitedFlag = false;
@@ -441,7 +620,7 @@ void app::PlatformMsw::refreshDisplays()
 			if( oldDisplay->mMonitor == newDisplay->mMonitor ) {
 				// found this display; see if anything changed
 				if( ( oldDisplay->mArea != newDisplay->mArea ) || ( oldDisplay->mBitsPerPixel != newDisplay->mBitsPerPixel ) || ( oldDisplay->mContentScale != newDisplay->mContentScale ) )
-					changedDisplays.push_back( *displayIt );
+					changedDisplays->push_back( *displayIt );
 				*oldDisplay = *newDisplay;
 				oldDisplay->mVisitedFlag = true;
 				found = true;
@@ -450,7 +629,7 @@ void app::PlatformMsw::refreshDisplays()
 		}
 		if( ! found ) {
 			newDisplay->mVisitedFlag = true; // don't want to later consider this display disconnected
-			connectedDisplays.push_back( *newDisplayIt );
+			connectedDisplays->push_back( *newDisplayIt );
 			mDisplays.push_back( *newDisplayIt );
 		}
 	}
@@ -458,21 +637,11 @@ void app::PlatformMsw::refreshDisplays()
 	// deal with any displays which have been disconnected
 	for( auto displayIt = mDisplays.begin(); displayIt != mDisplays.end(); ) {	
 		if( ! reinterpret_cast<DisplayMsw*>( displayIt->get() )->mVisitedFlag ) {
-			disconnectedDisplays.push_back( *displayIt );
+			disconnectedDisplays->push_back( *displayIt );
 			displayIt = mDisplays.erase( displayIt );
 		}
 		else
 			++displayIt;
-	}
-
-	// emit signals
-	if( app::AppBase::get() ) {
-		for( auto &display : connectedDisplays )
-			app::AppBase::get()->emitDisplayConnected( display );
-		for( auto &display : changedDisplays )
-			app::AppBase::get()->emitDisplayChanged( display );
-		for( auto &display : disconnectedDisplays )
-			app::AppBase::get()->emitDisplayDisconnected( display );
 	}
 }
 

@@ -1883,15 +1883,12 @@ void Circle::loadInto( Target *target, const AttribSet &/*requestedAttribs*/ ) c
 	texCoords.emplace_back( 0.5f, 0.5f );
 	normals.emplace_back( 0, 0, 1 );
 
-	// iterate the segments
-	const float tDelta = 1 / (float)mNumSubdivisions * 2.0f * 3.14159f;
-	float t = 0;
+	const float angle = 1 / (float)mNumSubdivisions * 2 * 3.1415926535f;
 	for( int s = 0; s <= mNumSubdivisions; s++ ) {
-		vec2 unit( math<float>::cos( t ), math<float>::sin( t ) );
+		vec2 unit( math<float>::cos( s * angle ), math<float>::sin( s * angle ) );
 		positions.emplace_back( mCenter + unit * mRadius );
 		texCoords.emplace_back( unit * 0.5f + vec2( 0.5f ) );
 		normals.emplace_back( 0, 0, 1 );
-		t += tDelta;
 	}
 
 	target->copyAttrib( Attrib::POSITION, 2, 0, (const float*)positions.data(), mNumVertices );
@@ -2025,7 +2022,7 @@ size_t Sphere::getNumIndices() const
 {
 	int numRings, numSegments;
 	numRingsAndSegments( &numRings, &numSegments );
-	return numSegments * numRings * 6;
+	return (numSegments - 1) * (numRings - 1) * 6;
 }
 
 uint8_t Sphere::getAttribDims( Attrib attr ) const
