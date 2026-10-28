@@ -25,12 +25,24 @@
 
 #include "cinder/Cinder.h"
 
+// Auto-detect and enable GLFW by default on macOS and Linux
 #if defined( CINDER_MAC )
-	#include "cinder/app/cocoa/AppMac.h"
+	#define CINDER_GLFW
+    #if ! defined( _GLFW_COCOA )
+        #define _GLFW_COCOA
+    #endif
+#elif defined( CINDER_LINUX ) && ! defined( CINDER_HEADLESS ) && ! defined( CINDER_GLFW )
+	// Linux defaults to GLFW unless CINDER_HEADLESS is defined
+	#define CINDER_GLFW
+#endif
+
+#if defined( CINDER_GLFW )
+	// GLFW backend (default for macOS and Linux)
+	#include "cinder/app/glfw/AppGlfw.h"
 	namespace cinder { namespace app {
-		typedef AppMac			App;
+		typedef AppGlfw			App;
 	} } // namespace cinder::app
-	#define CINDER_APP( APP, RENDERER, ... )	CINDER_APP_MAC( APP, RENDERER, ##__VA_ARGS__ )
+	#define CINDER_APP( APP, RENDERER, ... )	CINDER_APP_GLFW( APP, RENDERER, ##__VA_ARGS__ )
 #elif defined( CINDER_COCOA_TOUCH )
 	#include "cinder/app/cocoa/AppCocoaTouch.h"
 	namespace cinder { namespace app {
@@ -41,24 +53,22 @@
 	#include "cinder/app/msw/AppMsw.h"
 	namespace cinder { namespace app {
 		typedef AppMsw		App;
-	} } // namespace cinder::app		
-	#define CINDER_APP( APP, RENDERER, ... )	CINDER_APP_MSW( APP, RENDERER, ##__VA_ARGS__ )
-#elif defined( CINDER_UWP )
-	#include "cinder/app/winrt/AppWinRt.h"
-	namespace cinder { namespace app {
-		typedef AppWinRt	App;
 	} } // namespace cinder::app
-	#define CINDER_APP( APP, RENDERER, ... )	CINDER_APP_WINRT( APP, RENDERER, ##__VA_ARGS__ )
+	#define CINDER_APP( APP, RENDERER, ... )	CINDER_APP_MSW( APP, RENDERER, ##__VA_ARGS__ )
 #elif defined( CINDER_ANDROID )
     #include "cinder/app/android/AppAndroid.h"
     namespace cinder { namespace app {
         typedef AppAndroid App;
     } } // namespace cinder::app
 	#define CINDER_APP( APP, RENDERER, ... )	CINDER_APP_ANDROID( APP, RENDERER, ##__VA_ARGS__ )
-#elif defined( CINDER_LINUX )
-    #include "cinder/app/linux/AppLinux.h"
-    namespace cinder { namespace app {
-        typedef AppLinux App;
-    } } // namespace cinder::app
+#elif defined( CINDER_LINUX ) || defined( CINDER_HEADLESS )
+	// Linux headless backend
+	#include "cinder/app/linux/AppLinux.h"
+	namespace cinder { namespace app {
+		typedef AppLinux	App;
+	} } // namespace cinder::app
 	#define CINDER_APP( APP, RENDERER, ... )	CINDER_APP_LINUX( APP, RENDERER, ##__VA_ARGS__ )
 #endif
+
+// Note: CINDER_LINUX with GLFW is now handled by CINDER_GLFW above
+// The compatibility shim in linux/AppLinux.h provides backward compatibility

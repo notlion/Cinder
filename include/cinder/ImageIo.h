@@ -44,12 +44,12 @@ typedef std::shared_ptr<class ImageTargetFile>	ImageTargetFileRef;
 
 class CI_API ImageIo {
   public:
-	typedef enum ColorModel { CM_RGB, CM_GRAY, CM_UNKNOWN } ColorModel;
-	typedef enum DataType { UINT8, UINT16, FLOAT32, FLOAT16, DATA_UNKNOWN } DataType;
-	typedef enum ChannelType { CHAN_RGB_R, CHAN_RGB_G, CHAN_RGB_B, CHAN_GRAY, CHAN_ALPHA, CHAN_MASK, CHAN_LAB_L, CHAN_LAB_A, CHAN_LAB_B,
+	enum ColorModel { CM_RGB, CM_GRAY, CM_UNKNOWN };
+	enum DataType { UINT8, UINT16, FLOAT32, FLOAT16, DATA_UNKNOWN };
+	enum ChannelType { CHAN_RGB_R, CHAN_RGB_G, CHAN_RGB_B, CHAN_GRAY, CHAN_ALPHA, CHAN_MASK, CHAN_LAB_L, CHAN_LAB_A, CHAN_LAB_B,
 					CHAN_YUV_Y, CHAN_YUV_U, CHAN_YUV_V, CHAN_CMYK_C, CHAN_CMYK_M, CHAN_CMYK_Y, CHAN_CMYK_K,
-					CHAN_UNKNOWN } ChannelType;
-	typedef enum ChannelOrder { RGBA, BGRA, ARGB, ABGR, RGBX, BGRX, XRGB, XBGR, RGB, BGR, Y, YA, CUSTOM } ChannelOrder; 	// Y = Gray/Luminance, X = ignored
+					CHAN_UNKNOWN };
+	enum ChannelOrder { RGBA, BGRA, ARGB, ABGR, RGBX, BGRX, XRGB, XBGR, RGB, BGR, Y, YA, CUSTOM }; // Y = Gray/Luminance, X = ignored
 
 	int32_t			getWidth() const { return mWidth; }
 	int32_t			getHeight() const { return mHeight; }
@@ -182,14 +182,8 @@ class CI_API ImageTarget : public ImageIo {
 	};
 	
   protected:
-	ImageTarget() {}	
+	ImageTarget() {}
 };
-
-#if defined( CINDER_UWP )
-//! Asynchronously loads an image from the file path \a path. Callback function \a callback will be called on main UI thread. Optional \a extension parameter allows specification of a file type. For example, "jpg" would force the file to load as a JPEG
-
-void loadImageAsync(const fs::path path, std::function<void (ImageSourceRef)> callback, ImageSource::Options options = ImageSource::Options(), std::string extension = "" );
-#endif
 
 
 //! Loads an image from the file path \a path. Optional \a extension parameter allows specification of a file type. For example, "jpg" would force the file to load as a JPEG

@@ -90,7 +90,7 @@ class CI_API TextLayout {
 
 class CI_API TextBox {
   public:
-	typedef enum Alignment { LEFT, CENTER, RIGHT } Alignment;
+	enum Alignment { LEFT, CENTER, RIGHT };
 	enum { GROW = 0 };
 	
 	TextBox() : mAlign( LEFT ), mSize( GROW, GROW ), mFont( Font::getDefault() ), mInvalid( true ), mColor( 1, 1, 1, 1 ), mBackgroundColor( 0, 0, 0, 0 ), mPremultiplied( false ), mLigate( true ) {}
@@ -160,7 +160,7 @@ class CI_API TextBox {
 	void						calculate() const;
 
 	mutable std::u16string	mWideText;
-#elif defined( CINDER_UWP ) || defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
+#elif defined( CINDER_ANDROID ) || defined( CINDER_LINUX )
 	std::vector<std::string>	calculateLineBreaks( const std::map<Font::Glyph, Font::GlyphMetrics>* cachedGlyphMetrics = nullptr ) const;
 	void 						calculate() const;
 #endif

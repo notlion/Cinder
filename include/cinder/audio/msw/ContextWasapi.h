@@ -24,7 +24,6 @@
 #pragma once
 
 #include "cinder/Cinder.h"
-#if defined( CINDER_UWP ) || ( _WIN32_WINNT >= 0x0600 ) // requires Windows Vista+
 
 #include "cinder/audio/Context.h"
 
@@ -95,5 +94,3 @@ class WasapiExc : public AudioExc {
 };
 
 } } } // namespace cinder::audio::msw
-
-#endif // defined( CINDER_UWP ) || ( _WIN32_WINNT >= 0x0600 )

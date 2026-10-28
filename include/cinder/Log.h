@@ -49,14 +49,14 @@
 
 namespace cinder { namespace log {
 
-typedef enum {
+enum Level {
 	LEVEL_VERBOSE,
 	LEVEL_DEBUG,
 	LEVEL_INFO,
 	LEVEL_WARNING,
 	LEVEL_ERROR,
 	LEVEL_FATAL
-} Level;
+};
 
 struct CI_API Location {
 	Location() {}
@@ -176,7 +176,6 @@ class CI_API LoggerBreakpoint : public Logger {
 };
 
 //! LoggerSystem rovides 'system' logging support. Uses syslog on platforms that have it, on MSW uses Windows Event Logging.
-//! \note Does nothing on WinRT.
 class CI_API LoggerSystem : public Logger {
 public:
 	LoggerSystem();

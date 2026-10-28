@@ -1,4 +1,4 @@
-### Cinder 0.9.3dev: [libcinder.org](http://libcinder.org)
+### Cinder 0.9.4dev: [libcinder.org](http://libcinder.org)
 
 <p align="center">
   <img src="https://libcinder.org/docs/_assets/images/cinder_logo.svg" alt="Cinder Logo" width="256" height="auto"/>
@@ -13,9 +13,25 @@ git clone --recursive https://github.com/cinder/Cinder.git
 
 You might also prefer one of our [pre-packaged downloads](https://libcinder.org/download).
 
+### Building Cinder
+
+Debug:
+```
+cmake -B build
+cmake --build build -j
+```
+
+Release:
+```
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release -j
+```
+
+This works on macOS, Windows, and Linux.
+
 Cinder [guides](https://libcinder.org/docs/branch/master/guides/index.html) and [reference documentation](https://libcinder.org/docs/branch/master/reference/index.html) are available on the website.
 
-Cinder supports macOS, Windows, Linux, and iOS. It requires Xcode 11.3.1 or later for development on the Mac, and Visual C++ 2019 or later on Windows.
+Cinder supports macOS, Windows, and Linux. It requires a C++20 compiler: Xcode 11.3.1+ on Mac, Visual C++ 2022+ on Windows.
 
 Cinder is released under the [Modified BSD License](COPYING). Please visit [our website](https://libcinder.org) for more information.
 

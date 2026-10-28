@@ -22,7 +22,7 @@
 
 #pragma once
 
-#if __clang__ 
+#if __clang__
 	#if ! __has_include( <cstdint> )
 		#error "<cstdint> is missing - Cinder requires libc++ on Mac OS X and iOS"
 	#endif
@@ -36,8 +36,8 @@
 //  CINDER_VERSION % 100 is the patch level
 //  CINDER_VERSION / 100 % 1000 is the minor version
 //  CINDER_VERSION / 100000 is the major version
-#define CINDER_VERSION		903
-#define CINDER_VERSION_STR	"0.9.3dev"
+#define CINDER_VERSION		904
+#define CINDER_VERSION_STR	"0.9.4dev"
 
 #if ! defined( ASIO_STANDALONE )
 #define ASIO_STANDALONE 1
@@ -57,17 +57,10 @@ using std::uint64_t;
 
 #if defined( _WIN32 ) || defined( __WIN32__ ) || defined( WIN32 )
 	#define CINDER_MSW
-	#if defined( WINAPI_PARTITION_DESKTOP )
-		#if WINAPI_FAMILY_PARTITION( WINAPI_PARTITION_DESKTOP )
-			#define CINDER_MSW_DESKTOP
-		#else
-			#define CINDER_UWP
-			#define ASIO_WINDOWS_RUNTIME 1
-		#endif
-	#else
-		#define CINDER_MSW_DESKTOP
-		#include <sdkddkver.h>
-	#endif
+	#define CINDER_MSW_DESKTOP
+	#include <sdkddkver.h>
+	// Note: ANGLE (OpenGL ES on Direct3D) is supported on Windows desktop.
+	// Define CINDER_GL_ANGLE in your project to enable ANGLE rendering.
 #elif (defined( linux ) || defined( __linux ) || defined( __linux__ )) && ! defined( __ANDROID__ )
 	#define CINDER_POSIX
 	#define CINDER_LINUX
@@ -85,6 +78,8 @@ using std::uint64_t;
 		#endif
 	#else
 		#define CINDER_MAC
+		#define CINDER_GLFW
+		#define _GLFW_COCOA 1
 	#endif
 	// This is defined to prevent the inclusion of some unfortunate macros in <AssertMacros.h>
 	#define __ASSERTMACROS__

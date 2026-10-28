@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.16 FATAL_ERROR )
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
 project( Renderer2dBasic )
@@ -11,4 +11,12 @@ include( "${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake" )
 ci_make_app(
 	SOURCES     ${APP_PATH}/src/Renderer2dApp.cpp
 	CINDER_PATH ${CINDER_PATH}
+	INCLUDES    ${APP_PATH}/include
 )
+
+if( CMAKE_SYSTEM_NAME STREQUAL "Darwin" )
+    add_custom_command( TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND plutil -replace NSHighResolutionCapable -bool false
+                "$<TARGET_BUNDLE_DIR:${PROJECT_NAME}>/Contents/Info.plist"
+    )
+endif()

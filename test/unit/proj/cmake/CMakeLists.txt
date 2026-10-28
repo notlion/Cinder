@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.16 FATAL_ERROR )
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
 project( UnitTests )
@@ -22,11 +22,19 @@ set( SOURCES
 	${UNIT_DIR}/src/MediaTime.cpp
 	${UNIT_DIR}/src/Path2dTest.cpp
 	${UNIT_DIR}/src/PolyLineTest.cpp
+	${UNIT_DIR}/src/CinderMathTest.cpp
 	${UNIT_DIR}/src/audio/BufferUnit.cpp
 	${UNIT_DIR}/src/audio/FftUnit.cpp
 	${UNIT_DIR}/src/audio/RingBufferUnit.cpp
 	${UNIT_DIR}/src/signals/SignalsTest.cpp
 )
+
+# Windows-specific tests for COM smart pointer
+if( MSVC OR WIN32 )
+	list( APPEND SOURCES
+		${UNIT_DIR}/src/ComPtrTest.cpp
+	)
+endif()
 
 ci_make_app(
 	SOURCES     ${SOURCES}
@@ -34,13 +42,11 @@ ci_make_app(
 	INCLUDES    "${UNIT_DIR}/src"    # for catch.hpp
 )
 
-if( APPLE )
-	set( TESTBINDIR ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/UnitTests/UnitTests.app/Contents/MacOS )
-else()
-	set( TESTBINDIR ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/UnitTests )
-endif()
+# Unit tests need to be a console app (not WIN32 GUI app) for output
+set_target_properties( UnitTests PROPERTIES WIN32_EXECUTABLE FALSE )
 
 add_test(
 	NAME UnitTests
-	COMMAND ${TESTBINDIR}/UnitTests
+	COMMAND $<TARGET_FILE:UnitTests>
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

@@ -17,7 +17,7 @@
 //   may be used to endorse or promote products derived from this software 
 //   without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ï¿½AS ISï¿½ AND ANY EXPRESS OR IMPLIED WARRANTIES, 
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 // FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
 // INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
@@ -33,17 +33,7 @@
 #include "cinder/Camera.h"
 
 #include <windows.h>
-#if ! defined( CINDER_WINRT )
 #include <windowsx.h>
-#endif
-
-#if defined( CINDER_WINRT )
-#include "cinder/WinRTUtils.h"
-using namespace Windows::UI::Core;
-using namespace Windows::Foundation;
-using namespace Windows::Graphics::Display;
-using namespace cinder::winrt;
-#endif
 
 namespace Shaders {
 
@@ -244,18 +234,12 @@ void RendererImplDx::finishToggleFullScreen()
 	}
 }
 
-void RendererImplDx::getPlatformWindowDimensions( Platform::Agile<Windows::UI::Core::CoreWindow> wnd, float* width, float* height) const
+void RendererImplDx::getPlatformWindowDimensions( HWND wnd, float* width, float* height) const
 {
-
-#if defined( CINDER_MSW ) 
 	RECT rect;
 	::GetClientRect(wnd, &rect);
 	*width = static_cast<float>(rect.right - rect.left);
 	*height = static_cast<float>(rect.bottom - rect.top);
-
-#elif defined( CINDER_WINRT )
-	return GetPlatformWindowDimensions(wnd.Get(), width, height);
-#endif
 }
 
 void RendererImplDx::releaseNonDeviceResources()
@@ -332,24 +316,15 @@ void RendererImplDx::swapBuffers() const
 	parameters.pScrollOffset = nullptr;
 
 	HRESULT hr;
-#if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
 	if( mVsyncEnable )
 		hr = mSwapChain->Present1( 1, 0, &parameters );
 	else
 		hr = mSwapChain->Present1( 0, 0, &parameters );
-#else
-	if( mVsyncEnable )
-		hr = mSwapChain->Present( 1, 0 );
-	else
-		hr = mSwapChain->Present( 0, 0 );
-#endif
 	//handle device lost
 	if(hr == DXGI_ERROR_DEVICE_REMOVED)
 		const_cast<RendererImplDx*>(this)->handleLostDevice();
-#if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
 	mDeviceContext->DiscardView( mMainFramebuffer );
 	mDeviceContext->DiscardView( mDepthStencilView );
-#endif
 }
 
 void RendererImplDx::makeCurrentContext()
@@ -426,7 +401,6 @@ void RendererImplDx::enableDepthWriting(bool enable)
 	md3dDevice->CreateDepthStencilState(&mDepthStencilDesc, &mDepthStencilState);
 }
 
-#if defined( CINDER_MSW )
 bool RendererImplDx::initialize( HWND wnd, HDC,  RendererRef sharedRenderer )
 {
 	// TODO: see if DX can do antialiasing automatically
@@ -438,21 +412,8 @@ bool RendererImplDx::initialize( HWND wnd, HDC,  RendererRef sharedRenderer )
 	}
 	return success;
 }
-#elif defined( CINDER_WINRT )
-bool RendererImplDx::initialize( DX_WINDOW_TYPE wnd)
-{
-	// TODO: see if DX can do antialiasing automatically
-	bool success = initializeInternal( wnd );
-	if(!success)
-	{
-		::WinRTMessageBox("Couldn't initialize DirectX.", "OK");
-		return FALSE;
-	}
-	return success;
-}
-#endif
 
-bool RendererImplDx::initializeInternal( DX_WINDOW_TYPE wnd )
+bool RendererImplDx::initializeInternal( HWND wnd )
 {
 	mWnd = wnd;
 	
@@ -627,10 +588,7 @@ bool RendererImplDx::createDevice( UINT createDeviceFlags )
 {
 	D3D_FEATURE_LEVEL featureLevels[] =
     {
-#if (_WIN32_WINNT >= 0x0602 /*_WIN32_WINNT_WIN8*/)
-		// This requires Windows 8.
 		D3D_FEATURE_LEVEL_11_1,
-#endif
         D3D_FEATURE_LEVEL_11_0,
         D3D_FEATURE_LEVEL_10_1,
         D3D_FEATURE_LEVEL_10_0,
@@ -655,19 +613,11 @@ bool RendererImplDx::createDevice( UINT createDeviceFlags )
 	);
 
 	if( hr == S_OK ) {
-#if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
 		hr = device->QueryInterface(__uuidof(ID3D11Device1), (void**)&md3dDevice);
-#else
-		hr = device->QueryInterface(__uuidof(ID3D11Device), (void**)&md3dDevice);
-#endif
 	}
 
 	if( hr == S_OK ) {
-#if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
 		hr = context->QueryInterface(__uuidof(ID3D11DeviceContext1), (void**)&mDeviceContext);
-#else
-		hr = context->QueryInterface(__uuidof(ID3D11DeviceContext), (void**)&mDeviceContext);
-#endif
 	}
 
 	if( context )
@@ -718,8 +668,7 @@ bool RendererImplDx::createFramebufferResources()
 		hr = dxgiDevice->GetAdapter(&dxgiAdapter);
 		if( hr != S_OK )
 			return false;
-		
- #if defined( CINDER_WINRT ) || ( _WIN32_WINNT >= 0x0602 )
+
 		IDXGIFactory2 *dxgiFactory;
 		hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&dxgiFactory);
 		if( hr != S_OK )
@@ -734,65 +683,11 @@ bool RendererImplDx::createFramebufferResources()
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.BufferCount = 2; // Use double-buffering to minimize latency.
-
-  #if defined( CINDER_WINRT )
-		swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-  #else
-		// Check to see if the OS is Windows 8 or later. If it's not, then that means
-		// compiling/running on Windows 7 SP1. We use this to set the appropriate
-		// flags for Windows7 SP 1's DirectX 11.1 support.
-		//
-		OSVERSIONINFOEX osver;
-		ZeroMemory( &osver, sizeof(OSVERSIONINFOEX) );
-		osver.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-		GetVersionEx( (OSVERSIONINFO*)&osver );
-		bool isWin8 = (osver.dwMajorVersion >= 6) && (osver.dwMinorVersion >= 2);
-
-		if( isWin8 ) {
-			swapChainDesc.Scaling = DXGI_SCALING_NONE;			
-		}
-		else {
-			//
-			// Win7 doesn't support DXGI_SCALING_NONE:
-			//    http://msdn.microsoft.com/en-us/library/windows/desktop/hh404557(v=vs.85).aspx
-			//
-			swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-		}
-  #endif
-
+		swapChainDesc.Scaling = DXGI_SCALING_NONE;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; // All Windows Store apps must use this SwapEffect.
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-  #if defined( CINDER_WINRT )
-		hr = dxgiFactory->CreateSwapChainForCoreWindow( md3dDevice, reinterpret_cast<IUnknown*>(mWnd.Get()), &swapChainDesc, nullptr, &mSwapChain );
-  #else 
 		hr = dxgiFactory->CreateSwapChainForHwnd( md3dDevice, mWnd, &swapChainDesc, NULL, NULL, &mSwapChain );
-  #endif
-#else
-		IDXGIFactory1 *dxgiFactory;
-		hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory1), (void**)&dxgiFactory);
-		if( hr != S_OK )
-			return false;
-		
-		DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
-		swapChainDesc.BufferDesc.Width = static_cast<UINT>(width); // Match the size of the window.
-		swapChainDesc.BufferDesc.Height = static_cast<UINT>(height);
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // This is the most common swap chain format.
-		swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-		swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-		swapChainDesc.SampleDesc.Count = 1; // Don't use multi-sampling.
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = 2; // Use double-buffering to minimize latency.
-		swapChainDesc.OutputWindow = mWnd;
-		swapChainDesc.Windowed = TRUE;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-		swapChainDesc.Flags = 0;
-		
-		hr = dxgiFactory->CreateSwapChain( md3dDevice, &swapChainDesc, &mSwapChain );
-#endif
 		if( hr != S_OK )
 			return false;
 		hr = dxgiDevice->SetMaximumFrameLatency(1);
